@@ -78,6 +78,33 @@
     .ranking-summary { margin-top: 14px; padding-top: 14px; border-top: 1px solid #f2f0ec; font-size: 11px; color: #a09c96; text-align: center; }
     .ranking-summary b { color: #e8704a; }
 
+    /* ── Spin Wheel ── */
+    .wheel-card { background: #ffffff; border: 1.5px solid #e8e4dc; border-radius: 16px; padding: 22px 20px; margin-bottom: 16px; }
+    .wheel-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .wheel-subtitle { font-size: 11px; color: #a09c96; margin-bottom: 14px; }
+    .wheel-wrap { position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+    .wheel-pointer {
+      position: absolute;
+      top: -8px; left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 22px solid #e8704a;
+      z-index: 10;
+      filter: drop-shadow(0 2px 3px rgba(232,112,74,0.5));
+    }
+    #wheelCanvas { display: block; border-radius: 50%; box-shadow: 0 4px 24px rgba(0,0,0,0.14); }
+    .wheel-btn {
+      width: 100%; padding: 11px; border: none; border-radius: 12px;
+      background: #e8704a; color: #fff; font-size: 14px; font-weight: 700;
+      font-family: inherit; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .wheel-btn:hover:not(:disabled) { background: #d0603a; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,112,74,0.35); }
+    .wheel-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+    .wheel-empty-hint { text-align: center; padding: 20px 0; color: #a09c96; font-size: 12px; }
+
     /* ── Section title ── */
     .section-title { font-size: 13px; font-weight: 600; color: #a09c96; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 16px; }
 
@@ -94,7 +121,7 @@
     .timeline-row { min-height: 56px; display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-bottom: 1px solid #f2f0ec; flex-wrap: wrap; transition: background 0.12s; }
     .timeline-row:last-child { border-bottom: none; }
     .timeline-row:hover { background: #faf9f5; }
-    .timeline-row.current-month-row { background: #fdf0eb; }
+    .timeline-row.current-month-row { background: #fdf0eb; padding-top: 14px; min-height: 64px; }
     .timeline-row.current-month-row:hover { background: #fce8e0; }
     .timeline-row.empty-row { color: #a09c96; font-size: 12px; font-style: italic; }
     .timeline-person { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: #faf9f5; border: 1px solid #e8e4dc; border-radius: 20px; font-size: 12px; font-weight: 500; color: #6b6660; transition: all 0.15s; cursor: pointer; }
@@ -106,6 +133,25 @@
     .tp-avatar-marketing { background: #4070c0; }
     .tp-avatar-design { background: #4a9050; }
     .tp-foods { font-size: 12px; margin-left: 2px; }
+
+    /* ── Birthday decoration on timeline avatar ── */
+    .tp-avatar-wrap { position: relative; display: inline-flex; flex-shrink: 0; }
+    .tp-birthday-deco {
+      position: absolute;
+      top: -9px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      line-height: 1;
+      pointer-events: none;
+      z-index: 2;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));
+      animation: decoFloat 2.5s ease-in-out infinite;
+    }
+    @keyframes decoFloat {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50%       { transform: translateX(-50%) translateY(-3px); }
+    }
 
     /* ── Month tabs ── */
     .month-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 36px; }
@@ -127,9 +173,23 @@
     .dept-btn.active { border-color: #e8704a; color: #e8704a; }
 
     /* ── Cards grid ── */
-    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-    .person-card { background: #ffffff; border: 1.5px solid #e8e4dc; border-radius: 16px; padding: 22px 22px 18px; transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1); cursor: default; position: relative; overflow: hidden; }
-    .person-card::before { content:''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #e8e4dc; transition: height 0.22s ease; }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; align-items: start; }
+
+    /* ── Person Card (collapsed by default) ── */
+    .person-card {
+      background: #ffffff;
+      border: 1.5px solid #e8e4dc;
+      border-radius: 16px;
+      padding: 18px 18px 14px;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: default;
+      position: relative;
+      overflow: hidden;
+    }
+    .person-card::before {
+      content:''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: #e8e4dc; transition: height 0.22s ease;
+    }
     .person-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06); transform: translateY(-2px); }
     .person-card:hover::before { height: 4px; }
     .person-card[data-dept="产品组"]::before { background: #e8704a; }
@@ -138,7 +198,17 @@
     .person-card.jump-highlight { animation: jumpHighlight 1.5s ease; }
     @keyframes jumpHighlight { 0% { box-shadow: 0 0 0 0 rgba(232,112,74,0); } 20% { box-shadow: 0 0 0 4px rgba(232,112,74,0.5), 0 8px 32px rgba(232,112,74,0.25); transform: translateY(-4px); } 100% { box-shadow: 0 0 0 0 rgba(232,112,74,0); } }
 
-    .card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+    /* ── Collapsed header row (avatar + name only) ── */
+    .card-collapsed-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+      padding: 2px 0;
+    }
+    .card-collapsed-row:hover .card-name { color: #e8704a; }
+
     .avatar-wrap { position: relative; flex-shrink: 0; cursor: pointer; display: inline-block; }
     .avatar { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #fff; overflow: hidden; }
     .avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -149,31 +219,81 @@
     .avatar-edit-hint { position: absolute; bottom: -3px; right: -3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 1.5px solid #e8e4dc; display: flex; align-items: center; justify-content: center; font-size: 10px; line-height: 1; opacity: 0; transition: opacity 0.15s; pointer-events: none; }
     .avatar-wrap:hover .avatar-edit-hint { opacity: 1; }
 
-    .card-name { font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
-    .card-dept-label { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 6px; margin-top: 3px; }
+    .card-name-area { flex: 1; min-width: 0; }
+    .card-name {
+      font-size: 15px; font-weight: 600; letter-spacing: -0.2px;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+      border-radius: 6px; padding: 1px 4px; margin: -1px -4px;
+      transition: background 0.15s; max-width: 100%;
+    }
+    .card-name:hover { background: #fdf0eb; }
+    .card-name .edit-icon { font-size: 10px; color: #ccc; opacity: 0; transition: opacity 0.15s; flex-shrink: 0; }
+    .card-name:hover .edit-icon { opacity: 1; color: #e8704a; }
+    .name-input {
+      font-size: 14px; font-weight: 600; font-family: inherit;
+      border: 1.5px solid #e8704a; border-radius: 8px;
+      padding: 3px 8px; outline: none; color: #1a1814;
+      background: #fff; width: 100%; max-width: 120px;
+    }
+    .card-expand-hint {
+      font-size: 10px; color: #bbb; margin-top: 2px; letter-spacing: 0.2px;
+    }
+
+    /* ── Expanded card body ── */
+    .card-expand-body {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    }
+    .person-card.expanded .card-expand-body {
+      max-height: 600px;
+      opacity: 1;
+    }
+
+    .card-expand-inner { padding-top: 14px; }
+
+    /* dept + birthday in one row */
+    .card-meta-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .card-dept-label { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 6px; }
     .person-card[data-dept="产品组"] .card-dept-label { background: #fdf0eb; color: #c45528; }
     .person-card[data-dept="营销"] .card-dept-label  { background: #eff4fc; color: #3460a0; }
     .person-card[data-dept="设计"] .card-dept-label  { background: #eff6f0; color: #3a7840; }
 
-    .birthday-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #faf9f5; border-radius: 10px; margin-bottom: 12px; }
-    .birthday-icon { font-size: 18px; flex-shrink: 0; }
-    .birthday-date { font-size: 18px; font-weight: 700; color: #1a1814; letter-spacing: -0.5px; }
-    .countdown-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; margin-top: 6px; }
+    .birthday-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; background: #faf9f5; border: 1px solid #e8e4dc; border-radius: 6px; font-size: 12px; font-weight: 600; color: #1a1814; }
+    .countdown-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
     .countdown-badge.today { background: #fff3cd; color: #a06400; }
     .countdown-badge.soon { background: #fdf0eb; color: #c45528; }
     .countdown-badge.normal { background: #eff4fc; color: #2a5890; }
     .countdown-badge.passed { background: #f0f0f0; color: #999; }
 
-    .food-section { margin-top: 12px; }
-    .food-label { font-size: 11px; color: #a09c96; font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    /* ── Food section inside expanded body ── */
+    .food-section { margin-top: 4px; }
+    .food-label { font-size: 11px; color: #a09c96; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
     .food-tags { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
-    .food-tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #faf9f5; border: 1px solid #e8e4dc; border-radius: 20px; font-size: 12px; font-weight: 500; color: #6b6660; transition: all 0.15s; }
+    .food-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 6px 4px 10px; background: #faf9f5;
+      border: 1px solid #e8e4dc; border-radius: 20px;
+      font-size: 12px; font-weight: 500; color: #6b6660; transition: all 0.15s;
+    }
     .food-tag:hover { background: #fff8f5; border-color: #e8704a; color: #e8704a; }
-    .food-tag .remove-food { margin-left: 2px; cursor: pointer; opacity: 0; transition: opacity 0.12s; font-size: 10px; color: #c44; background: none; border: none; padding: 0; line-height: 1; }
-    .food-tag:hover .remove-food { opacity: 1; }
-    .add-food-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px dashed #e8e4dc; background: transparent; color: #a09c96; font-size: 16px; cursor: pointer; transition: all 0.15s; }
-    .add-food-btn:hover { border-color: #e8704a; color: #e8704a; background: #fdf0eb; transform: scale(1.1); }
+    .food-tag-del {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: transparent; border: none; cursor: pointer;
+      color: #bbb; font-size: 12px; line-height: 1;
+      padding: 0; transition: all 0.15s; flex-shrink: 0;
+    }
+    .food-tag-del:hover { background: #e8704a; color: #fff; }
     .no-food { font-size: 12px; color: #a09c96; font-style: italic; }
+    .add-food-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 1.5px dashed #e8e4dc; background: transparent;
+      color: #a09c96; font-size: 16px; cursor: pointer; transition: all 0.15s;
+    }
+    .add-food-btn:hover { border-color: #e8704a; color: #e8704a; background: #fdf0eb; transform: scale(1.1); }
 
     /* ── Modal ── */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 1000; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.15s ease; }
@@ -199,6 +319,34 @@
     .custom-input-row button { padding: 8px 16px; border: none; border-radius: 10px; background: #e8704a; color: #fff; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s; }
     .custom-input-row button:hover { background: #d0603a; }
 
+    /* ── Modal footer & validate tip ── */
+    .modal-validate-tip {
+      margin-top: 10px; padding: 9px 14px; background: #fff3cd;
+      border: 1px solid #f0c050; border-radius: 10px;
+      font-size: 12px; color: #a06400; font-weight: 500;
+    }
+    .modal-validate-tip.hidden { display: none; }
+    .food-category.missing .food-category-title {
+      color: #e05030;
+      animation: missingShake 0.4s ease;
+    }
+    @keyframes missingShake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-6px); }
+      75%      { transform: translateX(6px); }
+    }
+    .modal-footer {
+      margin-top: 16px; padding-top: 14px; border-top: 1px solid #e8e4dc;
+      display: flex; justify-content: flex-end;
+    }
+    .modal-save-btn {
+      padding: 10px 28px; border: none; border-radius: 10px;
+      background: #e8704a; color: #fff; font-size: 14px; font-weight: 700;
+      font-family: inherit; cursor: pointer; transition: all 0.15s;
+    }
+    .modal-save-btn:hover { background: #d0603a; transform: translateY(-1px); }
+    .modal-save-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
     /* ── Avatar picker modal ── */
     .avatar-modal .modal { width: 460px; }
     .avatar-preview { display: flex; align-items: center; justify-content: center; padding: 20px; background: #faf9f5; border-radius: 12px; margin-bottom: 16px; }
@@ -219,6 +367,29 @@
     .btn-reset:hover { background: #e8e4dc; }
     .btn-confirm { background: #1a1814; color: #fff; }
     .btn-confirm:hover { background: #3a3834; }
+
+    /* ── Spin result overlay ── */
+    .spin-result-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 2000;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .spin-result-overlay.hidden { display: none; }
+    .spin-result-card {
+      background: #fff; border-radius: 24px; padding: 40px 40px;
+      text-align: center; box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+      animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      max-width: 320px; width: 90vw;
+    }
+    @keyframes popIn { from { opacity:0; transform: scale(0.7); } to { opacity:1; transform: scale(1); } }
+    .spin-result-emoji { font-size: 80px; display: block; margin-bottom: 10px; line-height: 1; }
+    .spin-result-name { font-size: 30px; font-weight: 800; color: #1a1814; margin-bottom: 8px; letter-spacing: -0.5px; }
+    .spin-result-sub { font-size: 13px; color: #a09c96; margin-bottom: 24px; }
+    .spin-result-close {
+      padding: 10px 32px; border: none; border-radius: 12px;
+      background: #e8704a; color: #fff; font-size: 14px; font-weight: 700;
+      font-family: inherit; cursor: pointer; transition: all 0.15s;
+    }
+    .spin-result-close:hover { background: #d0603a; }
 
     /* ── Month bar chart ── */
     .month-chart { display: flex; gap: 6px; align-items: flex-end; height: 60px; margin-bottom: 32px; padding: 0 4px; }
@@ -250,9 +421,7 @@
       .cards-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
       .person-card { padding: 14px 14px 12px; }
       .avatar { width: 36px; height: 36px; font-size: 15px; border-radius: 10px; }
-      .card-name { font-size: 14px; }
-      .birthday-row { padding: 8px 10px; }
-      .birthday-date { font-size: 15px; }
+      .card-name { font-size: 13px; }
       .food-tag { padding: 3px 8px; font-size: 11px; }
       .modal { width: 95vw; padding: 20px; }
       .avatar-grid { grid-template-columns: repeat(6, 1fr); }
@@ -270,8 +439,60 @@
 
     #avatar-file-input { display: none; }
 
-    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1a1814; color: #fff; padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 2000; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; }
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1a1814; color: #fff; padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 3000; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(-8px); }
+
+    /* ── Music player ── */
+    .music-player {
+      position: fixed; bottom: 28px; right: 28px; z-index: 900;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: #e8704a; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; box-shadow: 0 4px 16px rgba(232,112,74,0.45);
+      transition: all 0.2s ease; user-select: none;
+    }
+    .music-player:hover { background: #d0603a; transform: scale(1.08); }
+    .music-player.spinning { animation: musicSpin 3s linear infinite; }
+    @keyframes musicSpin { from { box-shadow: 0 4px 16px rgba(232,112,74,0.45); } 50% { box-shadow: 0 6px 24px rgba(232,112,74,0.7); } to { box-shadow: 0 4px 16px rgba(232,112,74,0.45); } }
+    .music-tooltip {
+      position: fixed; bottom: 90px; right: 28px; z-index: 901;
+      background: #1a1814; color: #fff; padding: 6px 14px;
+      border-radius: 8px; font-size: 12px; white-space: nowrap;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .music-player:hover ~ .music-tooltip, .music-player:focus ~ .music-tooltip { opacity: 1; }
+
+    /* ── Achievement overlay ── */
+    .achievement-overlay {
+      position: fixed; top: 20px; right: 28px; z-index: 4000;
+      pointer-events: none;
+    }
+    .achievement-card {
+      background: linear-gradient(135deg, #fffbe6, #fff8f0);
+      border: 2px solid #f0c050;
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 14px;
+      box-shadow: 0 8px 32px rgba(240,192,80,0.25);
+      animation: achieveIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: auto; cursor: pointer;
+      max-width: 300px;
+    }
+    @keyframes achieveIn {
+      from { opacity: 0; transform: translateX(60px) scale(0.85); }
+      to   { opacity: 1; transform: translateX(0)    scale(1); }
+    }
+    .achievement-card.hiding {
+      animation: achieveOut 0.3s ease forwards;
+    }
+    @keyframes achieveOut {
+      to { opacity: 0; transform: translateX(60px) scale(0.85); }
+    }
+    .achieve-icon { font-size: 36px; flex-shrink: 0; }
+    .achieve-text { flex: 1; }
+    .achieve-title { font-size: 13px; font-weight: 700; color: #a06400; margin-bottom: 2px; }
+    .achieve-desc { font-size: 12px; color: #c08020; }
   </style>
 </head>
 <body>
@@ -294,7 +515,7 @@
   </div>
   <div class="search-bar">
     <span class="search-icon">🔍</span>
-    <input type="text" id="search-input" placeholder="搜索同事姓名..." />
+    <input type="text" id="search-input" placeholder="搜索同事名字..." />
   </div>
 </header>
 
@@ -325,6 +546,16 @@
       <div class="ranking-list" id="ranking-list"></div>
       <div class="ranking-summary" id="ranking-summary"></div>
     </div>
+    <!-- 转盘卡片 -->
+    <div class="wheel-card" id="wheel-card">
+      <div class="wheel-title">🎡 今天吃什么？</div>
+      <div class="wheel-subtitle">从人气榜前10随机一转，听天由命！</div>
+      <div class="wheel-wrap">
+        <div class="wheel-pointer"></div>
+        <canvas id="wheelCanvas" width="260" height="260"></canvas>
+      </div>
+      <button class="wheel-btn" id="wheelSpinBtn">🎲 开始转动！</button>
+    </div>
   </aside>
 </main>
 
@@ -335,14 +566,11 @@
       <div class="modal-title" id="modal-person-name">添加喜好食物</div>
       <button class="modal-close" id="modal-close">&times;</button>
     </div>
-    <div class="modal-subtitle">点选已有食物，或自定义输入</div>
+    <div class="modal-subtitle">每个类别至少选择一项 · 点击选中/取消</div>
     <div id="modal-food-list"></div>
-    <div class="modal-custom">
-      <div class="food-category-title">自定义食物</div>
-      <div class="custom-input-row">
-        <input type="text" id="custom-food-input" placeholder="输入食物名称" />
-        <button id="custom-food-add">添加</button>
-      </div>
+    <div id="modal-validate-tip" class="modal-validate-tip hidden"></div>
+    <div class="modal-footer">
+      <button class="modal-save-btn" id="modal-save-btn">✓ 保存</button>
     </div>
   </div>
 </div>
@@ -364,6 +592,23 @@
   </div>
 </div>
 
+<!-- Spin Result Overlay -->
+<div class="spin-result-overlay hidden" id="spin-result-overlay">
+  <div class="spin-result-card">
+    <span class="spin-result-emoji" id="spin-result-emoji">🍽️</span>
+    <div class="spin-result-name" id="spin-result-name">-</div>
+    <div class="spin-result-sub">今天就吃这个了！🎉</div>
+    <button class="spin-result-close" id="spin-result-close">好的，就这个！</button>
+  </div>
+</div>
+
+<!-- Achievement Overlay -->
+<div class="achievement-overlay" id="achievement-overlay"></div>
+
+<!-- Music Player Button -->
+<button class="music-player" id="music-player" title="背景音乐">🎵</button>
+<div class="music-tooltip">点击播放/暂停轻音乐</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -380,7 +625,7 @@ var MANTLE_URL = 'https://mantledb.sh/v2/' + MANTLE_NS + '/data';
 
 var FOOD_CATEGORIES = [
   { name: "蛋糕甜点", items: [
-    { icon: "🍰", name: "蛋糕" }, { icon: "🧁", name: "纸杯蛋糕" },
+    { icon: "🎂", name: "蛋糕" }, { icon: "🧁", name: "纸杯蛋糕" },
     { icon: "🍰", name: "提拉米苏" }, { icon: "🍩", name: "甜甜圈" },
     { icon: "🍫", name: "巧克力" }, { icon: "🥮", name: "蛋黄酥" },
     { icon: "🍡", name: "年糕" }, { icon: "🍦", name: "冰激凌蛋糕" },
@@ -395,23 +640,45 @@ var FOOD_CATEGORIES = [
     { icon: "🍲", name: "潮汕牛肉锅" }, { icon: "🥟", name: "港式茶点" }
   ]},
   { name: "饮品小食", items: [
-    { icon: "🧋", name: "奶茶" }, { icon: "🥤", name: "果茶" },
+    { icon: "🍦", name: "奶茶" }, { icon: "🍵", name: "果茶" },
     { icon: "🍿", name: "爆米花" }, { icon: "🧀", name: "芝士拼盘" },
     { icon: "🥜", name: "坚果" }, { icon: "🍇", name: "水果拼盘" },
     { icon: "🍢", name: "烤串" }, { icon: "🥟", name: "春卷" }
   ]},
   { name: "团建热门", items: [
-    { icon: "🍕", name: "达美乐" }, { icon: "🍔", name: "汉堡" },
+    { icon: "🍔", name: "汉堡" },
     { icon: "🍱", name: "日料" }, { icon: "🍝", name: "西餐" },
-    { icon: "🫕", name: "部队锅" }, { icon: "🍲", name: "麻辣烫" },
+    { icon: "🥘", name: "部队锅" }, { icon: "🌶️", name: "麻辣烫" },
     { icon: "🥘", name: "冒菜" }, { icon: "🥗", name: "沙拉拼盘" },
     { icon: "🍜", name: "炒米粉" }, { icon: "🍢", name: "串串香" }
+  ]},
+  { name: "新鲜水果", items: [
+    { icon: "🍎", name: "苹果" }, { icon: "🍊", name: "橙子" },
+    { icon: "🍇", name: "葡萄" }, { icon: "🍓", name: "草莓" },
+    { icon: "🍉", name: "西瓜" }, { icon: "🍑", name: "桃子" },
+    { icon: "🍒", name: "樱桃" }, { icon: "🥭", name: "芒果" },
+    { icon: "🍋", name: "柠檬" }, { icon: "🫐", name: "蓝莓" },
+    { icon: "🍈", name: "哈密瓜" }, { icon: "🍍", name: "菠萝" }
   ]}
 ];
+
+// 覆盖特定食物 icon（更好看的替换）
+var FOOD_ICON_OVERRIDES = {
+  "奶茶":  "🍦",  // 用冰激凌蛋糕icon，好看且辨识度高
+  "部队锅": "🥘"   // 浅底锅，更接近部队锅形象
+};
 
 var FOOD_ICONS = {};
 FOOD_CATEGORIES.forEach(function(cat) {
   cat.items.forEach(function(item) { FOOD_ICONS[item.name] = item.icon; });
+});
+Object.keys(FOOD_ICON_OVERRIDES).forEach(function(k) {
+  FOOD_ICONS[k] = FOOD_ICON_OVERRIDES[k];
+});
+FOOD_CATEGORIES.forEach(function(cat) {
+  cat.items.forEach(function(item) {
+    if (FOOD_ICON_OVERRIDES[item.name]) item.icon = FOOD_ICON_OVERRIDES[item.name];
+  });
 });
 
 var AVATAR_CATEGORIES = [
@@ -421,37 +688,98 @@ var AVATAR_CATEGORIES = [
   { name: "其他形象", items: ["🤖","👽","🐲","🦄","⭐","🌈","🎈","🎨","💡","🔥","❄️","🌟"] }
 ];
 
-// 人员数据（foods 由云端同步）
+// 人员数据
 var PEOPLE = [
-  { dept: "产品组", name: "唐进鑫", month: 1,  foods: [] },
-  { dept: "产品组", name: "陈铮",   month: 6,  foods: [] },
-  { dept: "产品组", name: "杜存玉", month: 11, foods: [] },
-  { dept: "产品组", name: "李宇翔", month: 6,  foods: [] },
-  { dept: "产品组", name: "蔡得利", month: 7,  foods: [] },
-  { dept: "产品组", name: "张国焘", month: 11, foods: [] },
-  { dept: "产品组", name: "楼洋昕", month: 5,  foods: [] },
-  { dept: "产品组", name: "任旭岩", month: 11, foods: [] },
-  { dept: "产品组", name: "赵雨薇", month: 5,  foods: [] },
-  { dept: "产品组", name: "朱雨欣", month: 12, foods: [] },
-  { dept: "营销",   name: "张愉婷", month: 9,  foods: [] },
-  { dept: "营销",   name: "肖璐瑶", month: 12, foods: [] },
-  { dept: "营销",   name: "蒋烨凡", month: 4,  foods: [] },
-  { dept: "设计",   name: "潘大伟", month: 7,  foods: [] },
-  { dept: "设计",   name: "辛国锋", month: 10, foods: [] },
-  { dept: "设计",   name: "臧章程", month: 10, foods: [] },
-  { dept: "设计",   name: "史雨佳", month: 5,  foods: [] },
-  { dept: "设计",   name: "戚镇阳", month: 10, foods: [] },
-  { dept: "设计",   name: "黄思琪", month: 9,  foods: [] }
+  { dept: "产品组", key: "唐进鑫", name: "进鑫", month: 1,  foods: [] },
+  { dept: "产品组", key: "陈铮",   name: "铮",   month: 6,  foods: [] },
+  { dept: "产品组", key: "杜存玉", name: "存玉", month: 11, foods: [] },
+  { dept: "产品组", key: "李宇翔", name: "宇翔", month: 6,  foods: [] },
+  { dept: "产品组", key: "蔡得利", name: "得利", month: 7,  foods: [] },
+  { dept: "产品组", key: "张国焘", name: "国焘", month: 11, foods: [] },
+  { dept: "产品组", key: "楼洋昕", name: "洋昕", month: 5,  foods: [] },
+  { dept: "产品组", key: "任旭岩", name: "旭岩", month: 11, foods: [] },
+  { dept: "产品组", key: "赵雨薇", name: "雨薇", month: 5,  foods: [] },
+  { dept: "产品组", key: "朱雨欣", name: "雨欣", month: 12, foods: [] },
+  { dept: "营销",   key: "张愉婷", name: "愉婷", month: 9,  foods: [] },
+  { dept: "营销",   key: "肖璐瑶", name: "璐瑶", month: 12, foods: [] },
+  { dept: "营销",   key: "蒋烨凡", name: "烨凡", month: 4,  foods: [] },
+  { dept: "设计",   key: "潘大伟", name: "大伟", month: 7,  foods: [] },
+  { dept: "设计",   key: "辛国锋", name: "国锋", month: 10, foods: [] },
+  { dept: "设计",   key: "臧章程", name: "章程", month: 10, foods: [] },
+  { dept: "设计",   key: "史雨佳", name: "雨佳", month: 5,  foods: [] },
+  { dept: "设计",   key: "戚镇阳", name: "镇阳", month: 10, foods: [] },
+  { dept: "设计",   key: "黄思琪", name: "思琪", month: 9,  foods: [] }
 ];
+
+// ══════════════════════════════════
+//  ACHIEVEMENT SYSTEM
+// ══════════════════════════════════
+
+var ACHIEVEMENTS = [
+  { id: 'food3',   threshold: 3,  icon: '🌟', title: '美食初探',    desc: '有食物被3人钟爱！' },
+  { id: 'food5',   threshold: 5,  icon: '🔥', title: '人气之选',    desc: '有食物被5人选择，太受欢迎了！' },
+  { id: 'food8',   threshold: 8,  icon: '👑', title: '美食霸主',    desc: '居然有8人喜欢同一道美食！' },
+  { id: 'food10',  threshold: 10, icon: '🏆', title: '全员最爱',    desc: '10人联名推荐，这道菜是当之无愧的王者！' },
+  { id: 'food15',  threshold: 15, icon: '💎', title: '传奇美食',    desc: '15人次选择，这道菜已经成为部门传说！' },
+];
+
+var shownAchievements = {};
+
+try {
+  var saved = localStorage.getItem('birthday-wall-achievements');
+  if (saved) shownAchievements = JSON.parse(saved);
+} catch(e) {}
+
+function checkAchievements() {
+  var counts = {};
+  PEOPLE.forEach(function(p) {
+    p.foods.forEach(function(f) { counts[f] = (counts[f] || 0) + 1; });
+  });
+
+  ACHIEVEMENTS.forEach(function(ach) {
+    var triggered = Object.keys(counts).some(function(food) {
+      return counts[food] >= ach.threshold;
+    });
+    if (triggered && !shownAchievements[ach.id]) {
+      shownAchievements[ach.id] = true;
+      try { localStorage.setItem('birthday-wall-achievements', JSON.stringify(shownAchievements)); } catch(e) {}
+      // find the triggering food
+      var triggerFood = Object.keys(counts).find(function(food) { return counts[food] >= ach.threshold; });
+      var foodIcon = triggerFood ? (FOOD_ICONS[triggerFood] || '🍽️') : '';
+      showAchievement(ach, triggerFood ? foodIcon + ' ' + triggerFood : '');
+    }
+  });
+}
+
+function showAchievement(ach, foodName) {
+  var overlay = document.getElementById('achievement-overlay');
+  var card = document.createElement('div');
+  card.className = 'achievement-card';
+  card.innerHTML =
+    '<span class="achieve-icon">' + ach.icon + '</span>' +
+    '<div class="achieve-text">' +
+      '<div class="achieve-title">🏅 解锁成就：' + ach.title + '</div>' +
+      '<div class="achieve-desc">' + ach.desc + (foodName ? ' (' + foodName + ')' : '') + '</div>' +
+    '</div>';
+  overlay.appendChild(card);
+  card.onclick = function() { hideAchievementCard(card); };
+  setTimeout(function() { hideAchievementCard(card); }, 5000);
+}
+
+function hideAchievementCard(card) {
+  if (card.parentNode) {
+    card.classList.add('hiding');
+    setTimeout(function() { if (card.parentNode) card.parentNode.removeChild(card); }, 350);
+  }
+}
 
 // ══════════════════════════════════
 //  CLOUD DATA HELPERS
 // ══════════════════════════════════
 
-var cloudData = { foods: {}, avatars: {}, version: 0, lastUpdated: 0 };
+var cloudData = { foods: {}, avatars: {}, names: {}, version: 0, lastUpdated: 0 };
 var isEditing = false;
 
-// 从 MantleDB 读取数据
 function cloudGet() {
   return fetch(MANTLE_URL).then(function(r) {
     if (r.status === 404) return null;
@@ -460,7 +788,6 @@ function cloudGet() {
   });
 }
 
-// 向 MantleDB 写入数据（覆盖写）
 function cloudPut(data) {
   return fetch(MANTLE_URL, {
     method: 'POST',
@@ -472,16 +799,19 @@ function cloudPut(data) {
   });
 }
 
-// 应用云端数据到本地 PEOPLE
 function applyCloudData(data) {
-  cloudData = data || { foods: {}, avatars: {}, version: 0, lastUpdated: 0 };
+  cloudData = data || { foods: {}, avatars: {}, names: {}, version: 0, lastUpdated: 0 };
+  if (!cloudData.names) cloudData.names = {};
   PEOPLE.forEach(function(p) {
-    p.foods = (cloudData.foods[p.name] || []).slice();
+    p.foods = (cloudData.foods[p.key] || []).slice();
+    if (cloudData.names[p.key]) {
+      p.name = cloudData.names[p.key];
+    }
   });
 }
 
-function getAvatar(name) {
-  return cloudData.avatars[name];
+function getAvatar(key) {
+  return cloudData.avatars[key];
 }
 
 function updateSyncIndicator(status) {
@@ -497,16 +827,17 @@ function updateSyncIndicator(status) {
 }
 
 // ══════════════════════════════════
-//  INITIALIZE —— 首次使用时写入默认数据
+//  INITIALIZE
 // ══════════════════════════════════
 
 async function initializeCloudData() {
   var defaultData = {
     foods: {
       "李宇翔": ["炸鸡", "冰激凌蛋糕"],
-      "朱雨欣": ["达美乐", "巧克力", "年糕"]
+      "朱雨欣": ["披萨", "巧克力", "年糕"]
     },
     avatars: {},
+    names: {},
     version: 1,
     lastUpdated: Date.now()
   };
@@ -554,16 +885,284 @@ function esc(s) {
   return div.innerHTML;
 }
 
-function buildAvatarHtml(name, dept, sizeClass) {
-  var av = getAvatar(name);
-  var deptClass = getDeptClass(dept);
+function buildAvatarHtml(p, sizeClass) {
+  var av = getAvatar(p.key);
+  var deptClass = getDeptClass(p.dept);
+  var initials = p.name.slice(0, 1);
   if (av && av.indexOf('data:') === 0) {
     return '<span class="' + sizeClass + ' ' + sizeClass + '-' + deptClass + '"><img src="' + av + '" alt="" /></span>';
   } else if (av && av.length <= 4) {
     return '<span class="' + sizeClass + ' ' + sizeClass + '-emoji">' + av + '</span>';
   } else {
-    return '<span class="' + sizeClass + ' ' + sizeClass + '-' + deptClass + '">' + name.slice(-1) + '</span>';
+    return '<span class="' + sizeClass + ' ' + sizeClass + '-' + deptClass + '">' + initials + '</span>';
   }
+}
+
+// ══════════════════════════════════
+//  BACKGROUND MUSIC
+// ══════════════════════════════════
+
+// 使用免版权轻音乐（Web Audio API 生成悠闲旋律）
+var audioCtx = null;
+var musicPlaying = false;
+var musicNotes = null;
+var musicScheduled = [];
+
+// 悠闲旋律：C大调五声音阶，轻柔流畅
+var MELODY = [
+  // 主旋律片段（频率 Hz，时长 beat）
+  [523, 0.5],[587, 0.5],[659, 0.5],[698, 0.5],
+  [784, 1.0],[659, 0.5],[587, 0.5],[523, 1.0],
+  [440, 0.5],[494, 0.5],[523, 0.5],[587, 0.5],
+  [659, 1.5],[587, 0.5],
+  [523, 0.5],[587, 0.5],[523, 0.5],[494, 0.5],
+  [440, 2.0],
+  [392, 0.5],[440, 0.5],[494, 0.5],[523, 0.5],
+  [587, 1.0],[523, 0.5],[494, 0.5],[440, 1.0],
+  [392, 0.5],[440, 0.5],[494, 0.5],[440, 0.5],
+  [392, 2.0],
+  [330, 0.5],[370, 0.5],[392, 0.5],[440, 0.5],
+  [494, 1.0],[440, 0.5],[392, 0.5],[330, 1.5],
+  [0, 0.5]
+];
+
+var BPM = 80;
+var BEAT_DUR = 60 / BPM;
+
+function initAudio() {
+  if (!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch(e) {
+      showToast('浏览器不支持音频播放');
+      return false;
+    }
+  }
+  return true;
+}
+
+function playMelody() {
+  if (!audioCtx) return;
+  var startTime = audioCtx.currentTime + 0.1;
+  var totalDur = 0;
+
+  MELODY.forEach(function(note) {
+    var freq = note[0], beats = note[1];
+    var dur = beats * BEAT_DUR;
+    if (freq > 0) {
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, startTime + totalDur);
+      gain.gain.setValueAtTime(0, startTime + totalDur);
+      gain.gain.linearRampToValueAtTime(0.08, startTime + totalDur + 0.05);
+      gain.gain.linearRampToValueAtTime(0.06, startTime + totalDur + dur * 0.6);
+      gain.gain.linearRampToValueAtTime(0, startTime + totalDur + dur - 0.05);
+      osc.start(startTime + totalDur);
+      osc.stop(startTime + totalDur + dur);
+      musicScheduled.push(osc);
+    }
+    totalDur += dur;
+  });
+
+  // 循环播放
+  if (musicPlaying) {
+    musicNotes = setTimeout(playMelody, totalDur * 1000);
+  }
+}
+
+function startMusic() {
+  if (!initAudio()) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  musicPlaying = true;
+  musicScheduled = [];
+  playMelody();
+  document.getElementById('music-player').textContent = '🎶';
+  document.getElementById('music-player').classList.add('spinning');
+  showToast('🎵 轻音乐已开启');
+}
+
+function stopMusic() {
+  musicPlaying = false;
+  clearTimeout(musicNotes);
+  musicScheduled.forEach(function(osc) {
+    try { osc.stop(); } catch(e) {}
+  });
+  musicScheduled = [];
+  document.getElementById('music-player').textContent = '🎵';
+  document.getElementById('music-player').classList.remove('spinning');
+  showToast('🔇 音乐已暂停');
+}
+
+document.getElementById('music-player').onclick = function() {
+  if (musicPlaying) {
+    stopMusic();
+  } else {
+    startMusic();
+  }
+};
+
+// ══════════════════════════════════
+//  SPIN WHEEL
+// ══════════════════════════════════
+
+var wheelSpinning = false;
+var wheelCurrentAngle = 0;
+var wheelItems = [];
+
+var WHEEL_COLORS = [
+  '#e8704a','#f0a030','#5b8fd4','#6ba56e','#d47060',
+  '#8b7ac8','#e0b040','#4ab0a0','#c06890','#60a860'
+];
+
+function getTop10Foods() {
+  var counts = {};
+  PEOPLE.forEach(function(p) {
+    p.foods.forEach(function(f) { counts[f] = (counts[f] || 0) + 1; });
+  });
+  var sorted = Object.keys(counts).map(function(name) {
+    return { name: name, count: counts[name], icon: FOOD_ICONS[name] || '🍽️' };
+  }).sort(function(a, b) { return b.count - a.count; });
+  return sorted.slice(0, 10);
+}
+
+function drawWheel(angle) {
+  var canvas = document.getElementById('wheelCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var cx = W / 2, cy = H / 2, r = W / 2 - 4;
+  ctx.clearRect(0, 0, W, H);
+
+  if (wheelItems.length === 0) {
+    ctx.fillStyle = '#f0ece5';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#a09c96';
+    ctx.font = '13px PingFang SC, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('暂无美食数据', cx, cy);
+    return;
+  }
+
+  var n = wheelItems.length;
+  var slice = (Math.PI * 2) / n;
+
+  for (var i = 0; i < n; i++) {
+    var startAngle = angle + i * slice;
+    var endAngle = startAngle + slice;
+
+    // 扇形
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length];
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // 只画 emoji 图标（更大，居中偏向外侧）
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(startAngle + slice / 2);
+    // emoji 图标位置：从圆心偏移到 r * 0.6 处
+    var iconRadius = r * 0.62;
+    ctx.font = n <= 6 ? '26px sans-serif' : '22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(wheelItems[i].icon, iconRadius, 0);
+    ctx.restore();
+  }
+
+  // 中心圆
+  ctx.beginPath();
+  ctx.arc(cx, cy, 24, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = '#e8e4dc';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = '#1a1814';
+  ctx.font = 'bold 13px PingFang SC, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('转！', cx, cy);
+}
+
+function renderWheel() {
+  wheelItems = getTop10Foods();
+  var spinBtn = document.getElementById('wheelSpinBtn');
+  if (wheelItems.length === 0) {
+    spinBtn.disabled = true;
+    spinBtn.textContent = '还没有食物数据';
+  } else {
+    spinBtn.disabled = false;
+    spinBtn.innerHTML = '🎲 开始转动！';
+  }
+  drawWheel(wheelCurrentAngle);
+}
+
+function startSpin() {
+  if (wheelSpinning || wheelItems.length === 0) return;
+  wheelSpinning = true;
+  var spinBtn = document.getElementById('wheelSpinBtn');
+  spinBtn.disabled = true;
+  spinBtn.innerHTML = '⏳ 旋转中...';
+
+  var n = wheelItems.length;
+  var targetIndex = Math.floor(Math.random() * n);
+  var slice = (Math.PI * 2) / n;
+
+  var totalRotation = Math.PI * 2 * (5 + Math.random() * 3);
+  var targetMid = -Math.PI / 2 - (targetIndex * slice + slice / 2);
+  var finalAngle = wheelCurrentAngle + totalRotation;
+  var finalMod = ((finalAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+  var targetMod = ((targetMid % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+  var diff = targetMod - finalMod;
+  finalAngle += diff;
+  if (finalAngle - wheelCurrentAngle < Math.PI * 8) finalAngle += Math.PI * 2 * Math.ceil((Math.PI * 8 - (finalAngle - wheelCurrentAngle)) / (Math.PI * 2));
+
+  var startAngle = wheelCurrentAngle;
+  var duration = 4000;
+  var startTime = null;
+
+  function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
+
+  function animate(ts) {
+    if (!startTime) startTime = ts;
+    var elapsed = ts - startTime;
+    var progress = Math.min(elapsed / duration, 1);
+    var easedProgress = easeOut(progress);
+    wheelCurrentAngle = startAngle + (finalAngle - startAngle) * easedProgress;
+    drawWheel(wheelCurrentAngle);
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      wheelCurrentAngle = finalAngle;
+      wheelSpinning = false;
+      spinBtn.disabled = false;
+      spinBtn.innerHTML = '🎲 再转一次！';
+      showSpinResult(targetIndex);
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+function showSpinResult(index) {
+  var item = wheelItems[index];
+  if (!item) return;
+  document.getElementById('spin-result-emoji').textContent = item.icon;
+  document.getElementById('spin-result-name').textContent = item.name;
+  document.getElementById('spin-result-overlay').classList.remove('hidden');
 }
 
 // ══════════════════════════════════
@@ -577,11 +1176,11 @@ function buildAvatarHtml(name, dept, sizeClass) {
     updateSyncIndicator('loading');
     var data = await cloudGet();
     if (!data) {
-      // 首次使用，初始化云端数据
       data = await initializeCloudData();
     }
     applyCloudData(data);
     updateSyncIndicator('synced');
+    checkAchievements();
   } catch (e) {
     console.error('初始加载失败:', e);
     updateSyncIndicator('error');
@@ -605,6 +1204,14 @@ function buildAvatarHtml(name, dept, sizeClass) {
   // ══════════════════════════
   //  RENDER FUNCTIONS
   // ══════════════════════════
+
+  // 生日月随机装饰
+  var BIRTHDAY_DECOS = ['👑','🎩','🎈','🎊','✨','🌟','🎀','🥳'];
+  function getBirthdayDeco(key) {
+    // 用 key 的字符码固定随机，同一个人始终同一个装饰
+    var seed = key.split('').reduce(function(s, c) { return s + c.charCodeAt(0); }, 0);
+    return BIRTHDAY_DECOS[seed % BIRTHDAY_DECOS.length];
+  }
 
   function renderTimeline() {
     timelineAxis.innerHTML = '';
@@ -630,12 +1237,25 @@ function buildAvatarHtml(name, dept, sizeClass) {
         people.forEach(function(p) {
           var chip = document.createElement('span');
           chip.className = 'timeline-person';
-          chip.dataset.name = p.name;
+          chip.dataset.key = p.key;
           var foodIcons = getFoodIcons(p.foods);
-          chip.innerHTML = buildAvatarHtml(p.name, p.dept, 'tp-avatar') +
+
+          // 当前生日月：头像外层加装饰
+          var avatarHtml;
+          if (isCurrent) {
+            var deco = getBirthdayDeco(p.key);
+            avatarHtml = '<span class="tp-avatar-wrap">' +
+              buildAvatarHtml(p, 'tp-avatar') +
+              '<span class="tp-birthday-deco">' + deco + '</span>' +
+            '</span>';
+          } else {
+            avatarHtml = buildAvatarHtml(p, 'tp-avatar');
+          }
+
+          chip.innerHTML = avatarHtml +
             ' ' + esc(p.name) +
             (p.foods.length ? ' <span class="tp-foods">' + foodIcons + '</span>' : '');
-          chip.addEventListener('click', function() { jumpToCard(p.name); });
+          chip.addEventListener('click', function() { jumpToCard(p.key); });
           row.appendChild(chip);
         });
       }
@@ -685,57 +1305,68 @@ function buildAvatarHtml(name, dept, sizeClass) {
     grid.innerHTML = '';
     PEOPLE.forEach(function(p, idx) {
       var countdown = getCountdown(p.month);
-      var initials = p.name.slice(-1);
       var card = document.createElement('div');
       card.className = 'person-card';
       card.dataset.dept = p.dept;
       card.dataset.month = p.month;
       card.dataset.name = p.name;
-      card.id = 'card-' + p.name;
+      card.dataset.key = p.key;
+      card.id = 'card-' + p.key;
       card.style.animationDelay = (idx * 30) + 'ms';
 
-      var foodTagsHtml = p.foods.length > 0
-        ? p.foods.map(function(f) {
-            return '<span class="food-tag">' + (FOOD_ICONS[f] || '🍽️') + ' ' + esc(f) +
-              '<span class="remove-food" data-name="' + esc(p.name) + '" data-food="' + esc(f) + '">&times;</span></span>';
-          }).join('')
-        : '<span class="no-food">暂未登记</span>';
-
-      var av = getAvatar(p.name);
+      var av = getAvatar(p.key);
+      var deptClass = getDeptClass(p.dept);
+      var initials = p.name.slice(0, 1);
       var avatarInnerHtml;
       if (av && av.indexOf('data:') === 0) {
-        avatarInnerHtml = '<div class="avatar avatar-' + getDeptClass(p.dept) + '"><img src="' + av + '" alt="" /></div>';
+        avatarInnerHtml = '<div class="avatar avatar-' + deptClass + '"><img src="' + av + '" alt="" /></div>';
       } else if (av && av.length <= 4) {
         avatarInnerHtml = '<div class="avatar avatar-emoji-display">' + av + '</div>';
       } else {
-        avatarInnerHtml = '<div class="avatar avatar-' + getDeptClass(p.dept) + '">' + initials + '</div>';
+        avatarInnerHtml = '<div class="avatar avatar-' + deptClass + '">' + initials + '</div>';
       }
 
+      // 食物标签 + 添加按钮
+      var foodTagsHtml = p.foods.length > 0
+        ? p.foods.map(function(f) {
+            return '<span class="food-tag">' + (FOOD_ICONS[f] || '🍽️') + ' ' + esc(f) +
+              '<button class="food-tag-del" data-key="' + esc(p.key) + '" data-food="' + esc(f) + '" title="删除">×</button>' +
+              '</span>';
+          }).join('')
+        : '<span class="no-food">暂未登记</span>';
+
       card.innerHTML =
-        '<div class="card-header">' +
-          '<div class="avatar-wrap" data-name="' + esc(p.name) + '">' +
+        // 折叠行：头像 + 名字（点击展开）
+        '<div class="card-collapsed-row" data-key="' + esc(p.key) + '">' +
+          '<div class="avatar-wrap" data-key="' + esc(p.key) + '">' +
             avatarInnerHtml +
             '<div class="avatar-edit-hint">📷</div>' +
           '</div>' +
-          '<div>' +
-            '<div class="card-name">' + esc(p.name) + '</div>' +
-            '<div class="card-dept-label">' + esc(p.dept) + '</div>' +
+          '<div class="card-name-area">' +
+            '<div class="card-name" data-key="' + esc(p.key) + '" title="点击修改昵称">' +
+              esc(p.name) + '<span class="edit-icon">✏️</span>' +
+            '</div>' +
+            '<div class="card-expand-hint">点击查看详情</div>' +
           '</div>' +
         '</div>' +
-        '<div class="birthday-row">' +
-          '<span class="birthday-icon">🎂</span>' +
-          '<div>' +
-            '<div class="birthday-date">' + p.month + ' 月</div>' +
-            '<span class="countdown-badge ' + countdown.type + '">' + countdown.text + '</span>' +
-          '</div>' +
-        '</div>' +
-        '<div class="food-section">' +
-          '<div class="food-label">🍴 喜好食物</div>' +
-          '<div class="food-tags">' +
-            foodTagsHtml +
-            '<button class="add-food-btn" data-name="' + esc(p.name) + '" title="添加喜好食物">+</button>' +
+        // 展开区域
+        '<div class="card-expand-body">' +
+          '<div class="card-expand-inner">' +
+            '<div class="card-meta-row">' +
+              '<span class="card-dept-label">' + esc(p.dept) + '</span>' +
+              '<span class="birthday-chip">🎂 ' + p.month + ' 月</span>' +
+              '<span class="countdown-badge ' + countdown.type + '">' + countdown.text + '</span>' +
+            '</div>' +
+            '<div class="food-section">' +
+              '<div class="food-label">🍴 喜好食物</div>' +
+              '<div class="food-tags">' +
+                foodTagsHtml +
+                '<button class="add-food-btn" data-key="' + esc(p.key) + '" title="添加食物">+</button>' +
+              '</div>' +
+            '</div>' +
           '</div>' +
         '</div>';
+
       grid.appendChild(card);
     });
     bindCardEvents();
@@ -759,6 +1390,7 @@ function buildAvatarHtml(name, dept, sizeClass) {
     if (top10.length === 0) {
       listEl.innerHTML = '<div class="ranking-empty"><span class="emoji">🍽️</span>还没有人登记喜好<br>快去添加吧！</div>';
       summaryEl.innerHTML = '';
+      renderWheel();
       return;
     }
     listEl.innerHTML = top10.map(function(item, i) {
@@ -774,6 +1406,9 @@ function buildAvatarHtml(name, dept, sizeClass) {
     var totalFoods = sorted.length;
     var totalVotes = sorted.reduce(function(s, i) { return s + i.count; }, 0);
     summaryEl.innerHTML = '共 <b>' + totalFoods + '</b> 种美食 · <b>' + totalVotes + '</b> 人次选择';
+
+    renderWheel();
+    checkAchievements();
   }
 
   function renderAll() {
@@ -801,7 +1436,8 @@ function buildAvatarHtml(name, dept, sizeClass) {
       var data = await cloudGet();
       if (!data) return;
       var changed = JSON.stringify(cloudData.foods) !== JSON.stringify(data.foods) ||
-                    JSON.stringify(cloudData.avatars) !== JSON.stringify(data.avatars);
+                    JSON.stringify(cloudData.avatars) !== JSON.stringify(data.avatars) ||
+                    JSON.stringify(cloudData.names) !== JSON.stringify(data.names);
       applyCloudData(data);
       if (changed && !isEditing) {
         renderAll();
@@ -818,18 +1454,124 @@ function buildAvatarHtml(name, dept, sizeClass) {
   // ══════════════════════════
 
   function bindCardEvents() {
-    document.querySelectorAll('.add-food-btn').forEach(function(btn) {
-      btn.onclick = function(e) { e.stopPropagation(); e.preventDefault(); openFoodModal(btn.dataset.name); };
-    });
-    document.querySelectorAll('.remove-food').forEach(function(span) {
-      span.onclick = function(e) {
-        e.stopPropagation(); e.preventDefault();
-        removeFood(span.dataset.name, span.dataset.food);
+    // 折叠行点击 → 展开/收起整张卡片
+    document.querySelectorAll('.card-collapsed-row').forEach(function(row) {
+      row.onclick = function(e) {
+        // 如果点的是头像或名字编辑区，不处理展开
+        if (e.target.closest('.avatar-wrap') || e.target.closest('.card-name')) return;
+        var card = row.closest('.person-card');
+        if (card) card.classList.toggle('expanded');
       };
     });
+
+    // 头像点击
     document.querySelectorAll('.avatar-wrap').forEach(function(wrap) {
-      wrap.onclick = function(e) { e.stopPropagation(); e.preventDefault(); openAvatarModal(wrap.dataset.name); };
+      wrap.onclick = function(e) { e.stopPropagation(); e.preventDefault(); openAvatarModal(wrap.dataset.key); };
     });
+
+    // 名字点击 → 编辑
+    document.querySelectorAll('.card-name[data-key]').forEach(function(nameEl) {
+      nameEl.onclick = function(e) {
+        e.stopPropagation();
+        // 先展开卡片再编辑
+        var card = nameEl.closest('.person-card');
+        if (card && !card.classList.contains('expanded')) card.classList.add('expanded');
+        startNameEdit(nameEl.dataset.key, nameEl);
+      };
+    });
+
+    // 食物 + 添加按钮
+    document.querySelectorAll('.add-food-btn[data-key]').forEach(function(btn) {
+      btn.onclick = function(e) {
+        e.stopPropagation();
+        openFoodModal(btn.dataset.key);
+      };
+    });
+
+    // 食物快捷删除按钮
+    document.querySelectorAll('.food-tag-del').forEach(function(btn) {
+      btn.onclick = function(e) {
+        e.stopPropagation();
+        removeFood(btn.dataset.key, btn.dataset.food);
+      };
+    });
+  }
+
+  // ══════════════════════════
+  //  REMOVE FOOD (quick delete)
+  // ══════════════════════════
+
+  async function removeFood(key, foodName) {
+    try {
+      updateSyncIndicator('saving');
+      var data = await cloudGet();
+      if (!data) data = { foods: {}, avatars: {}, names: {}, version: 0, lastUpdated: 0 };
+      if (!data.foods[key]) data.foods[key] = [];
+      var idx = data.foods[key].indexOf(foodName);
+      if (idx >= 0) data.foods[key].splice(idx, 1);
+      data.lastUpdated = Date.now();
+      data.version = (data.version || 0) + 1;
+      await cloudPut(data);
+      applyCloudData(data);
+      renderCards();
+      renderTimeline();
+      renderFoodRanking();
+      updateSyncIndicator('synced');
+      showToast('已删除 ' + foodName);
+    } catch(e) {
+      showToast('删除失败，请重试');
+      updateSyncIndicator('error');
+    }
+  }
+
+  // ══════════════════════════
+  //  NAME EDIT IN-PLACE
+  // ══════════════════════════
+
+  function startNameEdit(key, nameEl) {
+    if (nameEl.querySelector('input')) return;
+    var p = PEOPLE.find(function(x) { return x.key === key; });
+    if (!p) return;
+    isEditing = true;
+
+    var input = document.createElement('input');
+    input.className = 'name-input';
+    input.value = p.name;
+    input.maxLength = 10;
+    nameEl.innerHTML = '';
+    nameEl.appendChild(input);
+    input.focus();
+    input.select();
+
+    async function commitName() {
+      var val = input.value.trim();
+      if (!val) val = p.name;
+      if (val !== p.name) {
+        try {
+          var data = await cloudGet();
+          if (!data) data = { foods: {}, avatars: {}, names: {}, version: 0, lastUpdated: 0 };
+          if (!data.names) data.names = {};
+          data.names[key] = val;
+          data.lastUpdated = Date.now();
+          data.version = (data.version || 0) + 1;
+          updateSyncIndicator('saving');
+          await cloudPut(data);
+          applyCloudData(data);
+          updateSyncIndicator('synced');
+          showToast('昵称已改为 ' + val);
+        } catch(e) {
+          showToast('保存失败，请重试');
+        }
+      }
+      isEditing = false;
+      renderAll();
+    }
+
+    input.onblur = commitName;
+    input.onkeydown = function(e) {
+      if (e.key === 'Enter') { input.blur(); }
+      if (e.key === 'Escape') { input.value = p.name; input.blur(); }
+    };
   }
 
   // ══════════════════════════
@@ -840,42 +1582,49 @@ function buildAvatarHtml(name, dept, sizeClass) {
   var foodModalClose = document.getElementById('modal-close');
   var foodModalPersonName = document.getElementById('modal-person-name');
   var foodModalFoodList = document.getElementById('modal-food-list');
-  var customInput = document.getElementById('custom-food-input');
-  var customAddBtn = document.getElementById('custom-food-add');
-  var currentModalPerson = null;
+  var foodModalSaveBtn = document.getElementById('modal-save-btn');
+  var foodModalValidateTip = document.getElementById('modal-validate-tip');
+  var currentModalPersonKey = null;
+  // 弹窗中临时保存的选中食物（在点保存前不写云端）
+  var modalTempFoods = [];
 
-  function openFoodModal(personName) {
-    currentModalPerson = PEOPLE.find(function(p) { return p.name === personName; });
-    if (!currentModalPerson) return;
+  function openFoodModal(key) {
+    var p = PEOPLE.find(function(x) { return x.key === key; });
+    if (!p) return;
+    currentModalPersonKey = key;
     isEditing = true;
-    foodModalPersonName.textContent = '给 ' + personName + ' 添加喜好食物';
+    // 初始化临时选中为当前用户的食物副本
+    modalTempFoods = p.foods.slice();
+    foodModalPersonName.textContent = '给 ' + p.name + ' 添加喜好食物';
+    foodModalValidateTip.classList.add('hidden');
+    foodModalValidateTip.textContent = '';
     renderModalFoodList();
     foodModal.classList.remove('hidden');
-    customInput.value = '';
   }
 
   function closeFoodModal() {
     foodModal.classList.add('hidden');
-    currentModalPerson = null;
+    currentModalPersonKey = null;
+    modalTempFoods = [];
     isEditing = false;
     syncData();
   }
 
   function renderModalFoodList() {
-    if (!currentModalPerson) return;
     foodModalFoodList.innerHTML = '';
     FOOD_CATEGORIES.forEach(function(cat) {
       var catDiv = document.createElement('div');
       catDiv.className = 'food-category';
+      catDiv.dataset.catname = cat.name;
       catDiv.innerHTML = '<div class="food-category-title">' + cat.name + '</div>';
       var gridEl = document.createElement('div');
       gridEl.className = 'food-grid';
       cat.items.forEach(function(item) {
-        var isSelected = currentModalPerson.foods.indexOf(item.name) >= 0;
+        var isSelected = modalTempFoods.indexOf(item.name) >= 0;
         var opt = document.createElement('span');
         opt.className = 'food-option' + (isSelected ? ' selected' : '');
         opt.innerHTML = item.icon + ' ' + item.name;
-        opt.onclick = function() { toggleFood(item.name); };
+        opt.onclick = function() { toggleFoodTemp(item.name, opt); };
         gridEl.appendChild(opt);
       });
       catDiv.appendChild(gridEl);
@@ -883,69 +1632,57 @@ function buildAvatarHtml(name, dept, sizeClass) {
     });
   }
 
-  async function toggleFood(foodName) {
-    if (!currentModalPerson) return;
-    try {
-      // GET → modify → POST
-      var data = await cloudGet();
-      if (!data) data = { foods: {}, avatars: {}, version: 0, lastUpdated: 0 };
-      if (!data.foods[currentModalPerson.name]) data.foods[currentModalPerson.name] = [];
-      var idx = data.foods[currentModalPerson.name].indexOf(foodName);
-      if (idx >= 0) {
-        data.foods[currentModalPerson.name].splice(idx, 1);
-      } else {
-        data.foods[currentModalPerson.name].push(foodName);
-      }
-      data.lastUpdated = Date.now();
-      data.version = (data.version || 0) + 1;
-      updateSyncIndicator('saving');
-      await cloudPut(data);
-      applyCloudData(data);
-      renderModalFoodList();
-      renderCards();
-      renderTimeline();
-      renderFoodRanking();
-      updateSyncIndicator('synced');
-    } catch (e) {
-      showToast('操作失败，请重试');
-      console.error(e);
+  // 临时切换选中状态（不写云端）
+  function toggleFoodTemp(foodName, optEl) {
+    var idx = modalTempFoods.indexOf(foodName);
+    if (idx >= 0) {
+      modalTempFoods.splice(idx, 1);
+      optEl.classList.remove('selected');
+    } else {
+      modalTempFoods.push(foodName);
+      optEl.classList.add('selected');
     }
+    // 清除验证提示
+    foodModalValidateTip.classList.add('hidden');
+    document.querySelectorAll('.food-category.missing').forEach(function(el) {
+      el.classList.remove('missing');
+    });
   }
 
-  async function addCustomFood() {
-    var val = customInput.value.trim();
-    if (!val || !currentModalPerson) return;
-    try {
-      var data = await cloudGet();
-      if (!data) data = { foods: {}, avatars: {}, version: 0, lastUpdated: 0 };
-      if (!data.foods[currentModalPerson.name]) data.foods[currentModalPerson.name] = [];
-      if (data.foods[currentModalPerson.name].indexOf(val) < 0) {
-        data.foods[currentModalPerson.name].push(val);
-      }
-      data.lastUpdated = Date.now();
-      data.version = (data.version || 0) + 1;
-      updateSyncIndicator('saving');
-      await cloudPut(data);
-      applyCloudData(data);
-      renderModalFoodList();
-      renderCards();
-      renderTimeline();
-      renderFoodRanking();
-      updateSyncIndicator('synced');
-      showToast('已添加 ' + val);
-    } catch (e) {
-      showToast('添加失败，请重试');
-    }
-    customInput.value = '';
-  }
+  // 点保存时验证每个类别至少选一项
+  foodModalSaveBtn.onclick = async function() {
+    // 验证：每个分类至少选一项
+    var missingCats = [];
+    FOOD_CATEGORIES.forEach(function(cat) {
+      var hasOne = cat.items.some(function(item) { return modalTempFoods.indexOf(item.name) >= 0; });
+      if (!hasOne) missingCats.push(cat.name);
+    });
 
-  async function removeFood(name, food) {
+    if (missingCats.length > 0) {
+      // 高亮缺失的分类
+      document.querySelectorAll('.food-category').forEach(function(el) {
+        if (missingCats.indexOf(el.dataset.catname) >= 0) {
+          el.classList.add('missing');
+          // 移除旧动画再重加，确保动画重播
+          void el.querySelector('.food-category-title').offsetWidth;
+        } else {
+          el.classList.remove('missing');
+        }
+      });
+      foodModalValidateTip.textContent = '⚠️ 请在以下类别中至少选一项：' + missingCats.join('、');
+      foodModalValidateTip.classList.remove('hidden');
+      // 滚动到第一个缺失分类
+      var firstMissing = document.querySelector('.food-category.missing');
+      if (firstMissing) firstMissing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    // 验证通过，保存到云端
+    foodModalSaveBtn.disabled = true;
     try {
       var data = await cloudGet();
-      if (!data) return;
-      if (data.foods[name]) {
-        data.foods[name] = data.foods[name].filter(function(f) { return f !== food; });
-      }
+      if (!data) data = { foods: {}, avatars: {}, names: {}, version: 0, lastUpdated: 0 };
+      data.foods[currentModalPersonKey] = modalTempFoods.slice();
       data.lastUpdated = Date.now();
       data.version = (data.version || 0) + 1;
       updateSyncIndicator('saving');
@@ -955,14 +1692,15 @@ function buildAvatarHtml(name, dept, sizeClass) {
       renderTimeline();
       renderFoodRanking();
       updateSyncIndicator('synced');
-      showToast('已移除 ' + food);
-    } catch (e) {
-      showToast('移除失败，请重试');
+      showToast('已保存 ' + modalTempFoods.length + ' 项食物偏好');
+      closeFoodModal();
+    } catch(e) {
+      showToast('保存失败，请重试');
+      updateSyncIndicator('error');
     }
-  }
+    foodModalSaveBtn.disabled = false;
+  };
 
-  customAddBtn.onclick = addCustomFood;
-  customInput.onkeydown = function(e) { if (e.key === 'Enter') customAddBtn.click(); };
   foodModalClose.onclick = closeFoodModal;
   foodModal.onclick = function(e) { if (e.target === foodModal) closeFoodModal(); };
 
@@ -980,15 +1718,17 @@ function buildAvatarHtml(name, dept, sizeClass) {
   var avatarConfirmBtn = document.getElementById('avatar-confirm-btn');
   var avatarFileInput = document.getElementById('avatar-file-input');
 
-  var currentAvatarPerson = null;
+  var currentAvatarKey = null;
   var tempAvatarValue = null;
   var tempAvatarType = null;
 
-  function openAvatarModal(personName) {
-    currentAvatarPerson = personName;
-    avatarModalName.textContent = '为 ' + personName + ' 选择头像';
+  function openAvatarModal(key) {
+    var p = PEOPLE.find(function(x) { return x.key === key; });
+    if (!p) return;
+    currentAvatarKey = key;
+    avatarModalName.textContent = '为 ' + p.name + ' 选择头像';
     isEditing = true;
-    var current = getAvatar(personName);
+    var current = getAvatar(key);
     if (current) {
       tempAvatarValue = current;
       if (current.indexOf('data:') === 0) tempAvatarType = 'image';
@@ -1005,7 +1745,7 @@ function buildAvatarHtml(name, dept, sizeClass) {
 
   function closeAvatarModal() {
     avatarModal.classList.add('hidden');
-    currentAvatarPerson = null;
+    currentAvatarKey = null;
     tempAvatarValue = null;
     tempAvatarType = null;
     isEditing = false;
@@ -1013,10 +1753,10 @@ function buildAvatarHtml(name, dept, sizeClass) {
   }
 
   function renderAvatarPreview() {
-    var person = PEOPLE.find(function(p) { return p.name === currentAvatarPerson; });
-    if (!person) return;
-    var deptClass = getDeptClass(person.dept);
-    var initials = person.name.slice(-1);
+    var p = PEOPLE.find(function(x) { return x.key === currentAvatarKey; });
+    if (!p) return;
+    var deptClass = getDeptClass(p.dept);
+    var initials = p.name.slice(0, 1);
     var innerHtml;
     if (tempAvatarType === 'image' && tempAvatarValue) {
       innerHtml = '<div class="preview-circle"><img src="' + tempAvatarValue + '" alt="" /></div>';
@@ -1025,7 +1765,7 @@ function buildAvatarHtml(name, dept, sizeClass) {
     } else {
       innerHtml = '<div class="preview-circle avatar-' + deptClass + '">' + initials + '</div>';
     }
-    avatarPreview.innerHTML = innerHtml + '<div class="preview-name">' + esc(person.name) + '</div>';
+    avatarPreview.innerHTML = innerHtml + '<div class="preview-name">' + esc(p.name) + '</div>';
   }
 
   function renderAvatarList() {
@@ -1059,7 +1799,7 @@ function buildAvatarHtml(name, dept, sizeClass) {
 
   avatarFileInput.onchange = function(e) {
     var file = e.target.files[0];
-    if (!file || !currentAvatarPerson) return;
+    if (!file || !currentAvatarKey) return;
     var reader = new FileReader();
     reader.onload = function(ev) {
       tempAvatarValue = ev.target.result;
@@ -1079,15 +1819,15 @@ function buildAvatarHtml(name, dept, sizeClass) {
   };
 
   avatarConfirmBtn.onclick = async function() {
-    if (!currentAvatarPerson) return;
+    if (!currentAvatarKey) return;
     try {
       var data = await cloudGet();
-      if (!data) data = { foods: {}, avatars: {}, version: 0, lastUpdated: 0 };
+      if (!data) data = { foods: {}, avatars: {}, names: {}, version: 0, lastUpdated: 0 };
       var avatarToSend = (tempAvatarType === 'default' || !tempAvatarValue) ? null : tempAvatarValue;
       if (avatarToSend) {
-        data.avatars[currentAvatarPerson] = avatarToSend;
+        data.avatars[currentAvatarKey] = avatarToSend;
       } else {
-        delete data.avatars[currentAvatarPerson];
+        delete data.avatars[currentAvatarKey];
       }
       data.lastUpdated = Date.now();
       data.version = (data.version || 0) + 1;
@@ -1112,8 +1852,8 @@ function buildAvatarHtml(name, dept, sizeClass) {
   //  JUMP TO CARD
   // ══════════════════════════
 
-  function jumpToCard(name) {
-    var card = document.getElementById('card-' + name);
+  function jumpToCard(key) {
+    var card = document.getElementById('card-' + key);
     if (!card) return;
     if (card.classList.contains('hidden')) {
       activeMonth = 0;
@@ -1129,15 +1869,18 @@ function buildAvatarHtml(name, dept, sizeClass) {
       });
       applyFilters();
     }
+    var p = PEOPLE.find(function(x) { return x.key === key; });
+    var displayName = p ? p.name : key;
     setTimeout(function() {
-      card = document.getElementById('card-' + name);
+      card = document.getElementById('card-' + key);
       if (!card) return;
       card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.classList.add('expanded');
       card.classList.remove('jump-highlight');
       void card.offsetWidth;
       card.classList.add('jump-highlight');
       setTimeout(function() { card.classList.remove('jump-highlight'); }, 1600);
-      showToast('已跳转到 ' + name + ' 的卡片');
+      showToast('已跳转到 ' + displayName + ' 的卡片');
     }, 100);
   }
 
@@ -1194,6 +1937,21 @@ function buildAvatarHtml(name, dept, sizeClass) {
   }
 
   // ══════════════════════════
+  //  SPIN WHEEL EVENTS
+  // ══════════════════════════
+
+  document.getElementById('wheelSpinBtn').onclick = startSpin;
+
+  document.getElementById('spin-result-close').onclick = function() {
+    document.getElementById('spin-result-overlay').classList.add('hidden');
+  };
+  document.getElementById('spin-result-overlay').onclick = function(e) {
+    if (e.target === document.getElementById('spin-result-overlay')) {
+      document.getElementById('spin-result-overlay').classList.add('hidden');
+    }
+  };
+
+  // ══════════════════════════
   //  SYNC INDICATOR CLICK
   // ══════════════════════════
 
@@ -1209,6 +1967,7 @@ function buildAvatarHtml(name, dept, sizeClass) {
     if (e.key === 'Escape') {
       if (!foodModal.classList.contains('hidden')) closeFoodModal();
       if (!avatarModal.classList.contains('hidden')) closeAvatarModal();
+      document.getElementById('spin-result-overlay').classList.add('hidden');
     }
   });
 
@@ -1223,7 +1982,6 @@ function buildAvatarHtml(name, dept, sizeClass) {
   renderFoodRanking();
   updateStats();
 
-  // Highlight today's month tab
   if (monthCounts[todayMonth - 1] > 0) {
     document.querySelectorAll('.month-tab').forEach(function(t) {
       if (parseInt(t.dataset.month) === todayMonth) {
@@ -1231,10 +1989,6 @@ function buildAvatarHtml(name, dept, sizeClass) {
       }
     });
   }
-
-  // ══════════════════════════
-  //  START POLLING (every 5s)
-  // ══════════════════════════
 
   setInterval(syncData, 5000);
 
