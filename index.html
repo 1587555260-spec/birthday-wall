@@ -391,15 +391,6 @@
     }
     .spin-result-close:hover { background: #d0603a; }
 
-    /* ── Month bar chart ── */
-    .month-chart { display: flex; gap: 6px; align-items: flex-end; height: 60px; margin-bottom: 32px; padding: 0 4px; }
-    .month-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
-    .month-bar { width: 100%; border-radius: 6px 6px 0 0; background: #e8e4dc; transition: all 0.22s ease; min-height: 4px; }
-    .month-bar-wrap.active .month-bar, .month-bar-wrap:hover .month-bar { background: #e8704a; }
-    .month-bar-label { font-size: 10px; color: #a09c96; font-weight: 500; }
-    .month-bar-count { font-size: 10px; font-weight: 600; color: transparent; height: 14px; }
-    .month-bar-wrap.active .month-bar-count, .month-bar-wrap:hover .month-bar-count { color: #e8704a; }
-
     .empty-state { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #a09c96; font-size: 14px; }
     .empty-state .emoji { font-size: 40px; display: block; margin-bottom: 12px; }
 
@@ -493,9 +484,80 @@
     .achieve-text { flex: 1; }
     .achieve-title { font-size: 13px; font-weight: 700; color: #a06400; margin-bottom: 2px; }
     .achieve-desc { font-size: 12px; color: #c08020; }
+
+    /* ── Background decoration layer ── */
+    #bg-decor {
+      position: fixed; inset: 0; z-index: -1; overflow: hidden;
+      pointer-events: none; transition: opacity 0.4s ease;
+    }
+    .bg-emoji {
+      position: absolute; user-select: none;
+      animation: bgFloat 8s ease-in-out infinite;
+    }
+    @keyframes bgFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50%       { transform: translateY(-12px) rotate(6deg); }
+    }
+
+    /* ── Theme selector ── */
+    .theme-selector {
+      position: relative;
+    }
+    .theme-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 10px;
+      border: 1.5px solid #e8e4dc; background: #faf9f5;
+      font-size: 13px; font-weight: 500; color: #6b6660;
+      cursor: pointer; transition: all 0.18s; font-family: inherit;
+      white-space: nowrap;
+    }
+    .theme-btn:hover { border-color: #e8704a; color: #e8704a; }
+    .theme-dropdown {
+      position: absolute; top: calc(100% + 6px); right: 0;
+      background: #fff; border: 1.5px solid #e8e4dc; border-radius: 14px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.12);
+      padding: 8px; min-width: 180px; z-index: 200;
+      display: none; animation: fadeIn 0.15s ease;
+    }
+    .theme-dropdown.show { display: block; }
+    .theme-option {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 10px; cursor: pointer;
+      font-size: 13px; font-weight: 500; color: #6b6660;
+      transition: all 0.12s;
+    }
+    .theme-option:hover { background: #faf9f5; color: #1a1814; }
+    .theme-option.active { background: #fdf0eb; color: #e8704a; font-weight: 600; }
+    .theme-option .theme-icon { font-size: 18px; }
+
+    /* ── Add person button ── */
+    .add-person-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 16px; border-radius: 10px;
+      border: 1.5px dashed #e8704a; background: #fff8f5;
+      font-size: 13px; font-weight: 600; color: #e8704a;
+      cursor: pointer; transition: all 0.18s; font-family: inherit;
+      white-space: nowrap;
+    }
+    .add-person-btn:hover { background: #e8704a; color: #fff; border-style: solid; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,112,74,0.25); }
+
+    /* ── Add person modal form ── */
+    .form-field { margin-bottom: 16px; }
+    .form-label { font-size: 12px; font-weight: 600; color: #a09c96; letter-spacing: 0.4px; margin-bottom: 6px; display: block; }
+    .form-input, .form-select {
+      width: 100%; padding: 10px 14px; border: 1.5px solid #e8e4dc;
+      border-radius: 10px; font-size: 14px; font-family: inherit;
+      color: #1a1814; background: #faf9f5; outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus, .form-select:focus { border-color: #e8704a; background: #fff; }
+    .form-select { cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%23a09c96' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    .form-hint { font-size: 11px; color: #a09c96; margin-top: 4px; }
   </style>
 </head>
 <body>
+
+<div id="bg-decor"></div>
 
 <input type="file" id="avatar-file-input" accept="image/*" />
 
@@ -517,6 +579,17 @@
     <span class="search-icon">🔍</span>
     <input type="text" id="search-input" placeholder="搜索同事名字..." />
   </div>
+  <button class="add-person-btn" id="add-person-btn">➕ 新增成员</button>
+  <div class="theme-selector">
+    <button class="theme-btn" id="theme-btn">🎨 主题</button>
+    <div class="theme-dropdown" id="theme-dropdown">
+      <div class="theme-option active" data-theme="default"><span class="theme-icon">🤍</span> 默认纯净</div>
+      <div class="theme-option" data-theme="zodiac"><span class="theme-icon">♈</span> 十二星座</div>
+      <div class="theme-option" data-theme="minions"><span class="theme-icon">🍌</span> 小黄人</div>
+      <div class="theme-option" data-theme="pokemon"><span class="theme-icon">⚡</span> 宝可梦</div>
+      <div class="theme-option" data-theme="stars"><span class="theme-icon">⭐</span> 星星人</div>
+    </div>
+  </div>
 </header>
 
 <main class="main">
@@ -528,8 +601,6 @@
         <div class="timeline-body" id="timeline-body"></div>
       </div>
     </div>
-    <div class="section-title">按月份分布</div>
-    <div class="month-chart" id="month-chart"></div>
     <div class="month-tabs" id="month-tabs"></div>
     <div class="dept-filters">
       <button class="dept-btn active" data-dept="all">全部</button>
@@ -588,6 +659,43 @@
       <button class="btn-upload" id="avatar-upload-btn">📷 上传自定义头像</button>
       <button class="btn-reset" id="avatar-reset-btn">↩ 恢复默认</button>
       <button class="btn-confirm" id="avatar-confirm-btn">✓ 确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Person Modal -->
+<div class="modal-overlay hidden" id="add-person-modal">
+  <div class="modal" style="width:380px;">
+    <div class="modal-header">
+      <div class="modal-title">➕ 新增成员</div>
+      <button class="modal-close" id="add-person-close">&times;</button>
+    </div>
+    <div class="form-field">
+      <label class="form-label">姓名（全名）</label>
+      <input type="text" class="form-input" id="new-person-name" placeholder="如：王小明" maxlength="6" />
+      <div class="form-hint">系统会自动去掉姓氏，只显示名字</div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">所属部门</label>
+      <select class="form-select" id="new-person-dept">
+        <option value="产品组">产品组</option>
+        <option value="营销">营销</option>
+        <option value="设计">设计</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label class="form-label">生日月份</label>
+      <select class="form-select" id="new-person-month">
+        <option value="1">1月</option><option value="2">2月</option>
+        <option value="3">3月</option><option value="4">4月</option>
+        <option value="5">5月</option><option value="6">6月</option>
+        <option value="7">7月</option><option value="8">8月</option>
+        <option value="9">9月</option><option value="10">10月</option>
+        <option value="11">11月</option><option value="12">12月</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-save-btn" id="add-person-save">✓ 添加</button>
     </div>
   </div>
 </div>
@@ -711,6 +819,9 @@ var PEOPLE = [
   { dept: "设计",   key: "黄思琪", name: "思琪", month: 9,  foods: [] }
 ];
 
+// 备份原始人员（用于合并云端自定义人员时重建）
+var ORIGINAL_PEOPLE = PEOPLE.map(function(p) { return { dept: p.dept, key: p.key, name: p.name, month: p.month, foods: [] }; });
+
 // ══════════════════════════════════
 //  ACHIEVEMENT SYSTEM
 // ══════════════════════════════════
@@ -802,6 +913,19 @@ function cloudPut(data) {
 function applyCloudData(data) {
   cloudData = data || { foods: {}, avatars: {}, names: {}, version: 0, lastUpdated: 0 };
   if (!cloudData.names) cloudData.names = {};
+  if (!cloudData.customPeople) cloudData.customPeople = [];
+
+  // 重建 PEOPLE：原始人员 + 云端自定义人员
+  var existingKeys = {};
+  PEOPLE = ORIGINAL_PEOPLE.map(function(p) { return { dept: p.dept, key: p.key, name: p.name, month: p.month, foods: [] }; });
+  PEOPLE.forEach(function(p) { existingKeys[p.key] = true; });
+  cloudData.customPeople.forEach(function(cp) {
+    if (cp && cp.key && !existingKeys[cp.key]) {
+      PEOPLE.push({ dept: cp.dept, key: cp.key, name: cp.name || cp.key.slice(1), month: cp.month, foods: [] });
+      existingKeys[cp.key] = true;
+    }
+  });
+
   PEOPLE.forEach(function(p) {
     p.foods = (cloudData.foods[p.key] || []).slice();
     if (cloudData.names[p.key]) {
@@ -1013,8 +1137,8 @@ var wheelCurrentAngle = 0;
 var wheelItems = [];
 
 var WHEEL_COLORS = [
-  '#e8704a','#f0a030','#5b8fd4','#6ba56e','#d47060',
-  '#8b7ac8','#e0b040','#4ab0a0','#c06890','#60a860'
+  '#FF6B6B','#FFD93D','#6BCB77','#4D96FF','#FF9F45',
+  '#C780FA','#FF6BCB','#54C5DC','#FFB347','#95E1D3'
 ];
 
 function getTop10Foods() {
@@ -1166,6 +1290,80 @@ function showSpinResult(index) {
 }
 
 // ══════════════════════════════════
+//  BACKGROUND THEMES
+// ══════════════════════════════════
+
+var THEMES = {
+  default: { emojis: [], bgColor: '#faf9f5' },
+  zodiac:  { emojis: ['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'], bgColor: '#f8f6f0' },
+  minions: { emojis: ['🍌','🤓','💛','👀','🕶️','🔧'], bgColor: '#fffef0' },
+  pokemon: { emojis: ['⚡','🔴','⚪','🟡','🔵','🎯'], bgColor: '#f0f4ff' },
+  stars:   { emojis: ['⭐','✨','🌟','💫','⚡'], bgColor: '#f8f5ff' }
+};
+
+function applyBgTheme(themeId) {
+  var theme = THEMES[themeId] || THEMES.default;
+  var decor = document.getElementById('bg-decor');
+  if (!decor) return;
+  decor.innerHTML = '';
+  document.body.style.background = theme.bgColor;
+  if (theme.emojis.length === 0) return;
+
+  var count = 36;
+  for (var i = 0; i < count; i++) {
+    var el = document.createElement('span');
+    el.className = 'bg-emoji';
+    el.textContent = theme.emojis[Math.floor(Math.random() * theme.emojis.length)];
+    el.style.left = Math.random() * 100 + '%';
+    el.style.top = Math.random() * 100 + '%';
+    el.style.fontSize = (14 + Math.random() * 22) + 'px';
+    el.style.opacity = (0.035 + Math.random() * 0.05).toFixed(3);
+    el.style.animationDelay = (Math.random() * 4).toFixed(1) + 's';
+    el.style.animationDuration = (6 + Math.random() * 8).toFixed(1) + 's';
+    decor.appendChild(el);
+  }
+}
+
+(function initThemeSelector() {
+  var themeBtn = document.getElementById('theme-btn');
+  var themeDropdown = document.getElementById('theme-dropdown');
+  if (!themeBtn || !themeDropdown) return;
+
+  themeBtn.onclick = function(e) {
+    e.stopPropagation();
+    themeDropdown.classList.toggle('show');
+  };
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.theme-selector')) {
+      themeDropdown.classList.remove('show');
+    }
+  });
+
+  document.querySelectorAll('.theme-option').forEach(function(opt) {
+    opt.onclick = function() {
+      var theme = opt.dataset.theme;
+      document.querySelectorAll('.theme-option').forEach(function(o) { o.classList.remove('active'); });
+      opt.classList.add('active');
+      applyBgTheme(theme);
+      try { localStorage.setItem('birthday-wall-theme', theme); } catch(e) {}
+      themeDropdown.classList.remove('show');
+      showToast('🎨 主题已切换');
+    };
+  });
+
+  // Load saved theme
+  var savedTheme = 'default';
+  try { savedTheme = localStorage.getItem('birthday-wall-theme') || 'default'; } catch(e) {}
+  if (savedTheme !== 'default') {
+    document.querySelectorAll('.theme-option').forEach(function(o) {
+      o.classList.toggle('active', o.dataset.theme === savedTheme);
+    });
+  }
+  applyBgTheme(savedTheme);
+})();
+
+// ══════════════════════════════════
 //  MAIN APP
 // ══════════════════════════════════
 
@@ -1196,6 +1394,85 @@ function showSpinResult(index) {
 
   var monthCounts = Array(12).fill(0);
   PEOPLE.forEach(function(p) { monthCounts[p.month - 1]++; });
+
+  // ══════════════════════════
+  //  REBUILD PEOPLE DATA (after adding person)
+  // ══════════════════════════
+
+  function rebuildPeopleData() {
+    peopleByMonth = Array.from({length: 12}, function() { return []; });
+    PEOPLE.forEach(function(p) { peopleByMonth[p.month - 1].push(p); });
+    monthCounts = Array(12).fill(0);
+    PEOPLE.forEach(function(p) { monthCounts[p.month - 1]++; });
+  }
+
+  // ══════════════════════════
+  //  ADD PERSON MODAL
+  // ══════════════════════════
+
+  var addPersonModal = document.getElementById('add-person-modal');
+  var addPersonClose = document.getElementById('add-person-close');
+  var addPersonSave = document.getElementById('add-person-save');
+  var newPersonName = document.getElementById('new-person-name');
+  var newPersonDept = document.getElementById('new-person-dept');
+  var newPersonMonth = document.getElementById('new-person-month');
+
+  document.getElementById('add-person-btn').onclick = function() {
+    newPersonName.value = '';
+    newPersonDept.value = '产品组';
+    newPersonMonth.value = '1';
+    addPersonModal.classList.remove('hidden');
+    setTimeout(function() { newPersonName.focus(); }, 100);
+  };
+
+  addPersonClose.onclick = function() { addPersonModal.classList.add('hidden'); };
+  addPersonModal.onclick = function(e) { if (e.target === addPersonModal) addPersonModal.classList.add('hidden'); };
+
+  addPersonSave.onclick = async function() {
+    var fullName = newPersonName.value.trim();
+    if (!fullName) { showToast('请输入姓名'); newPersonName.focus(); return; }
+
+    // 检查重名
+    var existing = PEOPLE.find(function(p) { return p.key === fullName; });
+    if (existing) { showToast('该成员已存在！'); return; }
+
+    // 自动去姓：取第二字开始
+    var displayName = fullName.length > 1 ? fullName.slice(1) : fullName;
+    var dept = newPersonDept.value;
+    var month = parseInt(newPersonMonth.value);
+
+    var newPerson = { key: fullName, name: displayName, dept: dept, month: month };
+
+    addPersonSave.disabled = true;
+    addPersonSave.textContent = '添加中...';
+    try {
+      var data = await cloudGet();
+      if (!data) data = { foods: {}, avatars: {}, names: {}, version: 0, lastUpdated: 0 };
+      if (!data.customPeople) data.customPeople = [];
+      data.customPeople.push(newPerson);
+      data.lastUpdated = Date.now();
+      data.version = (data.version || 0) + 1;
+      updateSyncIndicator('saving');
+      await cloudPut(data);
+      applyCloudData(data);
+      rebuildPeopleData();
+      renderTimeline();
+      renderMonthTabs();
+      renderCards();
+      renderFoodRanking();
+      updateStats();
+      updateSyncIndicator('synced');
+      showToast('✅ 已添加 ' + displayName + '（' + dept + ' · ' + month + '月）');
+      addPersonModal.classList.add('hidden');
+    } catch(e) {
+      showToast('添加失败，请重试');
+      console.error(e);
+    }
+    addPersonSave.disabled = false;
+    addPersonSave.textContent = '✓ 添加';
+  };
+
+  newPersonName.onkeydown = function(e) { if (e.key === 'Enter') addPersonSave.click(); };
 
   var timelineAxis = document.getElementById('timeline-axis');
   var timelineBody = document.getElementById('timeline-body');
@@ -1260,23 +1537,6 @@ function showSpinResult(index) {
         });
       }
       timelineBody.appendChild(row);
-    });
-  }
-
-  function renderMonthChart() {
-    var chartEl = document.getElementById('month-chart');
-    chartEl.innerHTML = '';
-    var maxCount = Math.max.apply(null, monthCounts) || 1;
-    monthCounts.forEach(function(cnt, i) {
-      var wrap = document.createElement('div');
-      wrap.className = 'month-bar-wrap';
-      wrap.dataset.month = i + 1;
-      var barH = cnt > 0 ? Math.max(8, Math.round((cnt / maxCount) * 48)) : 4;
-      wrap.innerHTML = '<span class="month-bar-count">' + (cnt > 0 ? cnt : '') + '</span>' +
-        '<div class="month-bar" style="height:' + barH + 'px"></div>' +
-        '<span class="month-bar-label">' + (i+1) + '月</span>';
-      wrap.addEventListener('click', function() { setMonthFilter(i + 1); });
-      chartEl.appendChild(wrap);
     });
   }
 
@@ -1435,11 +1695,19 @@ function showSpinResult(index) {
       updateSyncIndicator('loading');
       var data = await cloudGet();
       if (!data) return;
-      var changed = JSON.stringify(cloudData.foods) !== JSON.stringify(data.foods) ||
-                    JSON.stringify(cloudData.avatars) !== JSON.stringify(data.avatars) ||
-                    JSON.stringify(cloudData.names) !== JSON.stringify(data.names);
+      var foodsChanged = JSON.stringify(cloudData.foods) !== JSON.stringify(data.foods);
+      var avatarsChanged = JSON.stringify(cloudData.avatars) !== JSON.stringify(data.avatars);
+      var namesChanged = JSON.stringify(cloudData.names) !== JSON.stringify(data.names);
+      var peopleChanged = JSON.stringify(cloudData.customPeople) !== JSON.stringify(data.customPeople);
+      var changed = foodsChanged || avatarsChanged || namesChanged || peopleChanged;
       applyCloudData(data);
       if (changed && !isEditing) {
+        if (peopleChanged) {
+          rebuildPeopleData();
+          renderTimeline();
+          renderMonthTabs();
+          updateStats();
+        }
         renderAll();
       }
       updateSyncIndicator('synced');
@@ -1863,7 +2131,6 @@ function showSpinResult(index) {
       document.querySelectorAll('.month-tab').forEach(function(t) {
         t.classList.toggle('active', parseInt(t.dataset.month) === 0);
       });
-      document.querySelectorAll('.month-bar-wrap').forEach(function(b) { b.classList.remove('active'); });
       document.querySelectorAll('.dept-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.dept === 'all');
       });
@@ -1892,9 +2159,6 @@ function showSpinResult(index) {
     activeMonth = m;
     document.querySelectorAll('.month-tab').forEach(function(t) {
       t.classList.toggle('active', parseInt(t.dataset.month) === m);
-    });
-    document.querySelectorAll('.month-bar-wrap').forEach(function(b) {
-      b.classList.toggle('active', parseInt(b.dataset.month) === m);
     });
     applyFilters();
   }
@@ -1967,7 +2231,9 @@ function showSpinResult(index) {
     if (e.key === 'Escape') {
       if (!foodModal.classList.contains('hidden')) closeFoodModal();
       if (!avatarModal.classList.contains('hidden')) closeAvatarModal();
+      if (!addPersonModal.classList.contains('hidden')) addPersonModal.classList.add('hidden');
       document.getElementById('spin-result-overlay').classList.add('hidden');
+      document.getElementById('theme-dropdown').classList.remove('show');
     }
   });
 
@@ -1976,7 +2242,6 @@ function showSpinResult(index) {
   // ══════════════════════════
 
   renderTimeline();
-  renderMonthChart();
   renderMonthTabs();
   renderCards();
   renderFoodRanking();
