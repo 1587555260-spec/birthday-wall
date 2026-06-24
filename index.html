@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>部门生日墙</title>
+  <title>部门生日墙V1</title>
   <style>
     * { box-sizing: border-box; margin:0; padding:0; }
 
@@ -104,6 +104,34 @@
     .wheel-btn:hover:not(:disabled) { background: #d0603a; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,112,74,0.35); }
     .wheel-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
     .wheel-empty-hint { text-align: center; padding: 20px 0; color: #a09c96; font-size: 12px; }
+
+    /* ── Feedback box ── */
+    .feedback-card { background: #ffffff; border: 1.5px solid #e8e4dc; border-radius: 16px; padding: 22px 20px; }
+    .feedback-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .feedback-subtitle { font-size: 11px; color: #a09c96; margin-bottom: 14px; }
+    .feedback-textarea { width: 100%; min-height: 70px; max-height: 140px; resize: vertical; padding: 10px 12px; border: 1.5px solid #e8e4dc; border-radius: 10px; font-size: 13px; font-family: inherit; color: #1a1814; background: #faf9f5; outline: none; transition: border-color 0.15s; box-sizing: border-box; line-height: 1.5; }
+    .feedback-textarea:focus { border-color: #e8704a; background: #fff; }
+    .feedback-options { display: flex; align-items: center; justify-content: space-between; margin: 10px 0 12px; }
+    .feedback-anon { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6b6660; cursor: pointer; user-select: none; }
+    .feedback-anon input { width: 14px; height: 14px; accent-color: #e8704a; cursor: pointer; }
+    .feedback-name-input { width: 100px; padding: 5px 10px; border: 1.5px solid #e8e4dc; border-radius: 8px; font-size: 12px; font-family: inherit; color: #1a1814; background: #faf9f5; outline: none; transition: border-color 0.15s; }
+    .feedback-name-input:focus { border-color: #e8704a; background: #fff; }
+    .feedback-name-input.hidden { display: none; }
+    .feedback-submit { width: 100%; padding: 9px; border: none; border-radius: 10px; background: #e8704a; color: #fff; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+    .feedback-submit:hover { background: #d0603a; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,112,74,0.35); }
+    .feedback-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .feedback-list { margin-top: 16px; max-height: 280px; overflow-y: auto; }
+    .feedback-list::-webkit-scrollbar { width: 4px; }
+    .feedback-list::-webkit-scrollbar-thumb { background: #e0dccd; border-radius: 2px; }
+    .feedback-item { padding: 10px 0; border-top: 1px solid #f2f0ec; }
+    .feedback-item:first-child { border-top: none; }
+    .feedback-item-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .feedback-item-author { font-size: 12px; font-weight: 600; color: #6b6660; display: flex; align-items: center; gap: 4px; }
+    .feedback-item-time { font-size: 10px; color: #c0bbb3; }
+    .feedback-item-text { font-size: 13px; color: #1a1814; line-height: 1.5; word-break: break-word; }
+    .feedback-item-del { font-size: 10px; color: #ccc; background: none; border: none; cursor: pointer; padding: 0 2px; transition: color 0.15s; }
+    .feedback-item-del:hover { color: #c44; }
+    .feedback-empty { text-align: center; padding: 16px 0; color: #c0bbb3; font-size: 12px; }
 
     /* ── Section title ── */
     .section-title { font-size: 13px; font-weight: 600; color: #a09c96; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 16px; }
@@ -563,7 +591,7 @@
 
 <header class="header">
   <div class="header-left">
-    <h1>🎂 部门生日墙</h1>
+    <h1>🎂 部门生日墙V1</h1>
     <p>岁岁有今日 · 用好吃的犒劳每一岁</p>
   </div>
   <div class="header-stats">
@@ -627,8 +655,28 @@
       </div>
       <button class="wheel-btn" id="wheelSpinBtn">🎲 开始转动！</button>
     </div>
+    <!-- 意见信箱 -->
+    <div class="feedback-card">
+      <div class="feedback-title">📮 意见信箱</div>
+      <div class="feedback-subtitle">畅所欲言 · 可匿名提交</div>
+      <textarea class="feedback-textarea" id="feedback-input" placeholder="写下你的建议或想法..." maxlength="300"></textarea>
+      <div class="feedback-options">
+        <label class="feedback-anon">
+          <input type="checkbox" id="feedback-anon-check" checked />
+          匿名提交
+        </label>
+        <input type="text" class="feedback-name-input hidden" id="feedback-name-input" placeholder="你的名字" maxlength="10" />
+      </div>
+      <button class="feedback-submit" id="feedback-submit-btn">📤 提交意见</button>
+      <div class="feedback-list" id="feedback-list"></div>
+    </div>
   </aside>
 </main>
+
+<footer style="text-align:center;padding:24px 16px 32px;color:#c0bbb3;font-size:12px;line-height:1.8;">
+  <div>🎂 部门生日墙V1 · 2026.6.24 发布</div>
+  <div>出品人：七里小佩奇 🐷</div>
+</footer>
 
 <!-- Food Picker Modal -->
 <div class="modal-overlay hidden" id="food-modal">
@@ -914,6 +962,7 @@ function applyCloudData(data) {
   cloudData = data || { foods: {}, avatars: {}, names: {}, version: 0, lastUpdated: 0 };
   if (!cloudData.names) cloudData.names = {};
   if (!cloudData.customPeople) cloudData.customPeople = [];
+  if (!cloudData.feedback) cloudData.feedback = [];
 
   // 重建 PEOPLE：原始人员 + 云端自定义人员
   var existingKeys = {};
@@ -1675,6 +1724,7 @@ function applyBgTheme(themeId) {
     renderCards();
     renderTimeline();
     renderFoodRanking();
+    renderFeedback();
   }
 
   function updateStats() {
@@ -1699,7 +1749,8 @@ function applyBgTheme(themeId) {
       var avatarsChanged = JSON.stringify(cloudData.avatars) !== JSON.stringify(data.avatars);
       var namesChanged = JSON.stringify(cloudData.names) !== JSON.stringify(data.names);
       var peopleChanged = JSON.stringify(cloudData.customPeople) !== JSON.stringify(data.customPeople);
-      var changed = foodsChanged || avatarsChanged || namesChanged || peopleChanged;
+      var feedbackChanged = JSON.stringify(cloudData.feedback) !== JSON.stringify(data.feedback);
+      var changed = foodsChanged || avatarsChanged || namesChanged || peopleChanged || feedbackChanged;
       applyCloudData(data);
       if (changed && !isEditing) {
         if (peopleChanged) {
@@ -2256,6 +2307,113 @@ function applyBgTheme(themeId) {
   }
 
   setInterval(syncData, 5000);
+
+  // ══════════════════════════
+  //  FEEDBACK BOX
+  // ══════════════════════════
+
+  var fbInput = document.getElementById('feedback-input');
+  var fbAnonCheck = document.getElementById('feedback-anon-check');
+  var fbNameInput = document.getElementById('feedback-name-input');
+  var fbSubmitBtn = document.getElementById('feedback-submit-btn');
+  var fbList = document.getElementById('feedback-list');
+
+  fbAnonCheck.addEventListener('change', function() {
+    fbNameInput.classList.toggle('hidden', fbAnonCheck.checked);
+    if (fbAnonCheck.checked) fbNameInput.value = '';
+  });
+
+  fbSubmitBtn.addEventListener('click', async function() {
+    var text = fbInput.value.trim();
+    if (!text) { showToast('请输入意见内容'); return; }
+    var author = '';
+    if (!fbAnonCheck.checked) {
+      author = fbNameInput.value.trim();
+      if (!author) { showToast('请填写名字或勾选匿名'); return; }
+    }
+    fbSubmitBtn.disabled = true;
+    fbSubmitBtn.textContent = '提交中...';
+    try {
+      var data = await cloudGet();
+      if (!data) data = { foods: {}, avatars: {}, names: {}, version: 0, lastUpdated: 0 };
+      if (!data.feedback) data.feedback = [];
+      data.feedback.push({
+        text: text,
+        author: author,
+        time: Date.now()
+      });
+      data.lastUpdated = Date.now();
+      data.version = (data.version || 0) + 1;
+      updateSyncIndicator('saving');
+      await cloudPut(data);
+      applyCloudData(data);
+      renderFeedback();
+      updateSyncIndicator('synced');
+      fbInput.value = '';
+      showToast('意见已提交 📮');
+    } catch (e) {
+      showToast('提交失败，请重试');
+      console.error(e);
+    }
+    fbSubmitBtn.disabled = false;
+    fbSubmitBtn.textContent = '📤 提交意见';
+  });
+
+  function renderFeedback() {
+    var list = (cloudData.feedback || []).slice().reverse();
+    if (list.length === 0) {
+      fbList.innerHTML = '<div class="feedback-empty">还没有意见，快来第一个留言吧 ✨</div>';
+      return;
+    }
+    fbList.innerHTML = list.map(function(item, i) {
+      var displayName = item.author ? esc(item.author) : '匿名同学';
+      var timeStr = formatFeedbackTime(item.time);
+      var realIdx = (cloudData.feedback || []).length - 1 - i;
+      return '<div class="feedback-item">' +
+        '<div class="feedback-item-head">' +
+          '<span class="feedback-item-author">' + (item.author ? '👤 ' : '🎭 ') + displayName + '</span>' +
+          '<span style="display:flex;align-items:center;gap:6px;">' +
+            '<span class="feedback-item-time">' + timeStr + '</span>' +
+            '<button class="feedback-item-del" data-idx="' + realIdx + '" title="删除">✕</button>' +
+          '</span>' +
+        '</div>' +
+        '<div class="feedback-item-text">' + esc(item.text) + '</div>' +
+      '</div>';
+    }).join('');
+
+    fbList.querySelectorAll('.feedback-item-del').forEach(function(btn) {
+      btn.onclick = async function() {
+        var idx = parseInt(btn.dataset.idx);
+        try {
+          var data = await cloudGet();
+          if (!data || !data.feedback) return;
+          data.feedback.splice(idx, 1);
+          data.lastUpdated = Date.now();
+          data.version = (data.version || 0) + 1;
+          updateSyncIndicator('saving');
+          await cloudPut(data);
+          applyCloudData(data);
+          renderFeedback();
+          updateSyncIndicator('synced');
+          showToast('已删除');
+        } catch (e) {
+          showToast('删除失败');
+        }
+      };
+    });
+  }
+
+  function formatFeedbackTime(ts) {
+    if (!ts) return '';
+    var diff = Date.now() - ts;
+    if (diff < 60000) return '刚刚';
+    if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
+    var d = new Date(ts);
+    return (d.getMonth() + 1) + '月' + d.getDate() + '日';
+  }
+
+  renderFeedback();
 
   console.log('✅ 部门生日墙已加载（MantleDB 云端共享模式）');
   console.log('👥 总人数：' + PEOPLE.length);
