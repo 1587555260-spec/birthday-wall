@@ -581,9 +581,147 @@
     .form-input:focus, .form-select:focus { border-color: #e8704a; background: #fff; }
     .form-select { cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%23a09c96' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
     .form-hint { font-size: 11px; color: #a09c96; margin-top: 4px; }
+
+    /* ── Password Gate ── */
+    .pwd-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: linear-gradient(135deg, #faf9f5 0%, #f0ece5 50%, #e8e4dc 100%);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 20px;
+      transition: opacity 0.4s ease;
+    }
+    .pwd-overlay.fade-out { opacity: 0; pointer-events: none; }
+    .pwd-overlay.hidden { display: none; }
+    .pwd-box {
+      background: #fff; border-radius: 20px; padding: 40px 36px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.08);
+      text-align: center; max-width: 360px; width: 90%;
+    }
+    .pwd-emoji { font-size: 48px; margin-bottom: 12px; }
+    .pwd-title { font-size: 20px; font-weight: 700; color: #1a1814; margin-bottom: 6px; }
+    .pwd-subtitle { font-size: 13px; color: #a09c96; margin-bottom: 20px; }
+    .pwd-input {
+      width: 100%; padding: 12px 16px; border: 2px solid #e8e4dc;
+      border-radius: 12px; font-size: 16px; text-align: center;
+      outline: none; transition: border-color 0.15s;
+      letter-spacing: 3px;
+    }
+    .pwd-input:focus { border-color: #e8704a; }
+    .pwd-input.wrong { border-color: #f44336; animation: pwdShake 0.4s ease; }
+    @keyframes pwdShake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
+    .pwd-btn {
+      margin-top: 16px; padding: 12px 36px; background: #e8704a; color: #fff;
+      border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .pwd-btn:hover { background: #d0603a; }
+    .pwd-error { font-size: 12px; color: #f44336; margin-top: 10px; min-height: 18px; }
+
+    /* ── Upload Modal ── */
+    .upload-modal-overlay {
+      position: fixed; inset: 0; z-index: 1001;
+      background: rgba(0,0,0,0.3);
+      display: flex; align-items: center; justify-content: center;
+      animation: fadeIn 0.15s ease;
+    }
+    .upload-modal-overlay.hidden { display: none; }
+    .upload-modal {
+      background: #fff; border-radius: 18px; padding: 28px 24px;
+      width: 420px; max-width: 92vw; max-height: 80vh; overflow-y: auto;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.15);
+    }
+    .upload-modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .upload-section { margin-bottom: 20px; }
+    .upload-section-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #1a1814; }
+    .upload-section-desc { font-size: 12px; color: #a09c96; margin-bottom: 10px; }
+    .upload-area {
+      border: 2px dashed #e8e4dc; border-radius: 12px;
+      padding: 24px; text-align: center; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+    }
+    .upload-area:hover { border-color: #e8704a; background: #fdf0eb; }
+    .upload-area.has-file { border-color: #4caf50; border-style: solid; background: #eff6f0; }
+    .upload-area-icon { font-size: 32px; margin-bottom: 8px; }
+    .upload-area-text { font-size: 13px; color: #a09c96; }
+    .upload-area-text.has { color: #4caf50; }
+    .upload-preview { max-width: 100%; max-height: 120px; border-radius: 8px; margin-top: 8px; }
+    .upload-file-input { display: none; }
+    .upload-actions { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+    .upload-save-btn {
+      padding: 10px 24px; background: #e8704a; color: #fff;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .upload-save-btn:hover { background: #d0603a; }
+    .upload-save-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .upload-cancel-btn {
+      padding: 10px 24px; background: #f0ece5; color: #1a1814;
+      border: none; border-radius: 10px; font-size: 14px; cursor: pointer;
+    }
+    .upload-cancel-btn:hover { background: #e8e4dc; }
+    .upload-clear-btn {
+      padding: 10px 24px; background: #fff0f0; color: #f44336;
+      border: 1px solid #f44336; border-radius: 10px; font-size: 14px; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .upload-clear-btn:hover { background: #ffe0e0; }
+    .upload-status { font-size: 12px; color: #a09c96; margin-top: 4px; text-align: center; }
+
+    .header-action-btn {
+      padding: 7px 14px; background: #f0ece5; color: #1a1814;
+      border: none; border-radius: 10px; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s; white-space: nowrap;
+    }
+    .header-action-btn:hover { background: #e8e4dc; }
   </style>
 </head>
 <body>
+
+<!-- Password Gate Overlay -->
+<div class="pwd-overlay" id="pwd-overlay">
+  <div class="pwd-box">
+    <div class="pwd-emoji">🎂</div>
+    <div class="pwd-title">部门生日墙V1</div>
+    <div class="pwd-subtitle">请输入密码进入</div>
+    <input type="password" class="pwd-input" id="pwd-input" placeholder="输入密码" maxlength="20" autocomplete="off" />
+    <button class="pwd-btn" id="pwd-btn">进入</button>
+    <div class="pwd-error" id="pwd-error"></div>
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="upload-modal-overlay hidden" id="upload-modal">
+  <div class="upload-modal">
+    <div class="upload-modal-title">⚙️ 自定义背景与音乐</div>
+    <div class="upload-section">
+      <div class="upload-section-title">🖼️ 背景图片</div>
+      <div class="upload-section-desc">上传一张图片作为页面背景，建议不超过 500KB</div>
+      <div class="upload-area" id="bg-img-upload-area">
+        <input type="file" class="upload-file-input" id="bg-img-file" accept="image/jpeg,image/png,image/webp,image/gif" />
+        <div class="upload-area-icon">🖼️</div>
+        <div class="upload-area-text" id="bg-img-upload-text">点击选择图片文件</div>
+        <img class="upload-preview hidden" id="bg-img-preview" />
+      </div>
+      <div class="upload-status" id="bg-img-status"></div>
+    </div>
+    <div class="upload-section">
+      <div class="upload-section-title">🎵 背景音乐</div>
+      <div class="upload-section-desc">上传一首 MP3 作为背景音乐（取代默认轻音乐），建议不超过 2MB</div>
+      <div class="upload-area" id="bg-music-upload-area">
+        <input type="file" class="upload-file-input" id="bg-music-file" accept="audio/mp3,audio/mpeg,audio/ogg,audio/wav,audio/webm" />
+        <div class="upload-area-icon">🎵</div>
+        <div class="upload-area-text" id="bg-music-upload-text">点击选择音频文件</div>
+      </div>
+      <div class="upload-status" id="bg-music-status"></div>
+    </div>
+    <div class="upload-actions">
+      <button class="upload-save-btn" id="upload-save-btn">✓ 保存到云端</button>
+      <button class="upload-clear-btn" id="upload-clear-btn">🗑️ 清除自定义</button>
+      <button class="upload-cancel-btn" id="upload-cancel-btn">关闭</button>
+    </div>
+  </div>
+</div>
 
 <div id="bg-decor"></div>
 
@@ -618,6 +756,7 @@
       <div class="theme-option" data-theme="stars"><span class="theme-icon">⭐</span> 星星人</div>
     </div>
   </div>
+  <button class="header-action-btn" id="upload-btn">⚙️ 设置</button>
 </header>
 
 <main class="main">
@@ -774,6 +913,48 @@
 
 var MANTLE_NS = 'birthday-wall-2026-dept';
 var MANTLE_URL = 'https://mantledb.sh/v2/' + MANTLE_NS + '/data';
+var MANTLE_URL_BG = 'https://mantledb.sh/v2/' + MANTLE_NS + '-bg/data';
+
+var PASSWORD = 'dsm666';
+
+// ══════════════════════════════════
+//  PASSWORD GATE
+// ══════════════════════════════════
+
+(function initPasswordGate() {
+  var overlay = document.getElementById('pwd-overlay');
+  var input = document.getElementById('pwd-input');
+  var btn = document.getElementById('pwd-btn');
+  var errorEl = document.getElementById('pwd-error');
+
+  // Check if already authenticated
+  var saved = '';
+  try { saved = localStorage.getItem('birthday-wall-auth') || ''; } catch(e) {}
+  if (saved === PASSWORD) {
+    overlay.classList.add('hidden');
+    return;
+  }
+
+  function tryPassword() {
+    var val = input.value.trim();
+    if (val === PASSWORD) {
+      try { localStorage.setItem('birthday-wall-auth', val); } catch(e) {}
+      overlay.classList.add('fade-out');
+      setTimeout(function() { overlay.classList.add('hidden'); }, 400);
+    } else {
+      input.classList.add('wrong');
+      errorEl.textContent = '密码不正确，请重试';
+      setTimeout(function() { input.classList.remove('wrong'); }, 400);
+    }
+  }
+
+  btn.onclick = tryPassword;
+  input.onkeydown = function(e) {
+    if (e.key === 'Enter') tryPassword();
+  };
+  // Auto-focus
+  setTimeout(function() { input.focus(); }, 100);
+})();
 
 // ══════════════════════════════════
 //  DATA DEFINITIONS
@@ -949,6 +1130,25 @@ function cloudGet() {
 
 function cloudPut(data) {
   return fetch(MANTLE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  });
+}
+
+function cloudGetBg() {
+  return fetch(MANTLE_URL_BG).then(function(r) {
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  });
+}
+
+function cloudPutBg(data) {
+  return fetch(MANTLE_URL_BG, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -1413,6 +1613,262 @@ function applyBgTheme(themeId) {
 })();
 
 // ══════════════════════════════════
+//  BACKGROUND & MUSIC UPLOAD
+// ══════════════════════════════════
+
+var bgImageData = null;   // base64 string for background image
+var bgMusicData = null;   // base64 string for background music
+var customAudioEl = null; // HTML5 Audio element for custom music
+
+function applyBgImage(dataUrl) {
+  if (!dataUrl) {
+    // Remove custom background, revert to theme
+    var savedTheme = 'default';
+    try { savedTheme = localStorage.getItem('birthday-wall-theme') || 'default'; } catch(e) {}
+    applyBgTheme(savedTheme);
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundAttachment = '';
+    return;
+  }
+  // Clear emoji decorations, set image as background
+  var decor = document.getElementById('bg-decor');
+  if (decor) decor.innerHTML = '';
+  document.body.style.background = 'url(' + dataUrl + ') center/cover no-repeat fixed';
+  document.body.style.backgroundSize = 'cover';
+  document.body.style.backgroundAttachment = 'fixed';
+}
+
+function applyBgMusic(dataUrl) {
+  // Stop any existing custom audio
+  if (customAudioEl) {
+    customAudioEl.pause();
+    customAudioEl = null;
+  }
+  if (!dataUrl) {
+    // Revert to default Web Audio music
+    return;
+  }
+  // Create HTML5 Audio element
+  customAudioEl = new Audio(dataUrl);
+  customAudioEl.loop = true;
+  customAudioEl.volume = 0.3;
+
+  // Override the music button to play custom audio
+  var musicBtn = document.getElementById('music-player');
+  musicBtn.onclick = function() {
+    if (customAudioEl) {
+      if (!customAudioEl.paused) {
+        customAudioEl.pause();
+        musicBtn.textContent = '🎵';
+        musicBtn.classList.remove('spinning');
+        showToast('🎵 音乐已暂停');
+      } else {
+        customAudioEl.play().then(function() {
+          musicBtn.textContent = '🎶';
+          musicBtn.classList.add('spinning');
+          showToast('🎵 自定义音乐已播放');
+        }).catch(function() {
+          showToast('播放失败，请重试');
+        });
+      }
+    }
+  };
+}
+
+async function loadBgResources() {
+  try {
+    var bgData = await cloudGetBg();
+    if (bgData) {
+      bgImageData = bgData.bgImage || null;
+      bgMusicData = bgData.bgMusic || null;
+      if (bgImageData) applyBgImage(bgImageData);
+      if (bgMusicData) applyBgMusic(bgMusicData);
+    }
+  } catch(e) {
+    console.log('背景资源加载失败（可能未设置）:', e);
+  }
+}
+
+// ── Upload Modal Logic ──
+(function initUploadModal() {
+  var uploadBtn = document.getElementById('upload-btn');
+  var modal = document.getElementById('upload-modal');
+  var cancelBtn = document.getElementById('upload-cancel-btn');
+  var saveBtn = document.getElementById('upload-save-btn');
+  var clearBtn = document.getElementById('upload-clear-btn');
+
+  var bgImgArea = document.getElementById('bg-img-upload-area');
+  var bgImgFile = document.getElementById('bg-img-file');
+  var bgImgText = document.getElementById('bg-img-upload-text');
+  var bgImgPreview = document.getElementById('bg-img-preview');
+  var bgImgStatus = document.getElementById('bg-img-status');
+
+  var bgMusicArea = document.getElementById('bg-music-upload-area');
+  var bgMusicFile = document.getElementById('bg-music-file');
+  var bgMusicText = document.getElementById('bg-music-upload-text');
+  var bgMusicStatus = document.getElementById('bg-music-status');
+
+  var tempBgImg = null;
+  var tempBgMusic = null;
+
+  // Open modal
+  uploadBtn.onclick = function(e) {
+    e.stopPropagation();
+    // Reset temp values
+    tempBgImg = null;
+    tempBgMusic = null;
+    // Show current state
+    if (bgImageData) {
+      bgImgArea.classList.add('has-file');
+      bgImgText.textContent = '✅ 已设置自定义背景';
+      bgImgText.classList.add('has');
+      bgImgPreview.src = bgImageData;
+      bgImgPreview.classList.remove('hidden');
+      bgImgStatus.textContent = '点击可更换图片';
+    } else {
+      bgImgArea.classList.remove('has-file');
+      bgImgText.textContent = '点击选择图片文件';
+      bgImgText.classList.remove('has');
+      bgImgPreview.classList.add('hidden');
+      bgImgStatus.textContent = '';
+    }
+    if (bgMusicData) {
+      bgMusicArea.classList.add('has-file');
+      bgMusicText.textContent = '✅ 已设置自定义音乐';
+      bgMusicText.classList.add('has');
+      bgMusicStatus.textContent = '点击可更换音乐';
+    } else {
+      bgMusicArea.classList.remove('has-file');
+      bgMusicText.textContent = '点击选择音频文件';
+      bgMusicText.classList.remove('has');
+      bgMusicStatus.textContent = '';
+    }
+    modal.classList.remove('hidden');
+  };
+
+  // Close modal
+  cancelBtn.onclick = function() { modal.classList.add('hidden'); };
+  modal.onclick = function(e) { if (e.target === modal) modal.classList.add('hidden'); };
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) modal.classList.add('hidden');
+  });
+
+  // ── Image upload ──
+  bgImgArea.onclick = function() { bgImgFile.click(); };
+  bgImgFile.onchange = function() {
+    var file = bgImgFile.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      bgImgStatus.textContent = '文件太大，请选择小于 2MB 的图片';
+      bgImgFile.value = '';
+      return;
+    }
+    bgImgStatus.textContent = '正在处理图片...';
+    // Resize and compress image
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        // Resize to max 1200px width
+        var maxW = 1200;
+        var w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        var canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        // Compress to JPEG quality 0.7
+        var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        var sizeKB = Math.round(dataUrl.length * 0.75 / 1024);
+        tempBgImg = dataUrl;
+        bgImgArea.classList.add('has-file');
+        bgImgText.textContent = '✅ 已选择新图片 (' + sizeKB + 'KB)';
+        bgImgText.classList.add('has');
+        bgImgPreview.src = dataUrl;
+        bgImgPreview.classList.remove('hidden');
+        bgImgStatus.textContent = '点击"保存"上传到云端';
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ── Music upload ──
+  bgMusicArea.onclick = function() { bgMusicFile.click(); };
+  bgMusicFile.onchange = function() {
+    var file = bgMusicFile.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      bgMusicStatus.textContent = '文件太大，请选择小于 5MB 的音频';
+      bgMusicFile.value = '';
+      return;
+    }
+    bgMusicStatus.textContent = '正在读取音频...';
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var sizeKB = Math.round(e.target.result.length * 0.75 / 1024);
+      tempBgMusic = e.target.result;
+      bgMusicArea.classList.add('has-file');
+      bgMusicText.textContent = '✅ 已选择新音乐 (' + sizeKB + 'KB)';
+      bgMusicText.classList.add('has');
+      bgMusicStatus.textContent = '点击"保存"上传到云端';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ── Save ──
+  saveBtn.onclick = async function() {
+    saveBtn.disabled = true;
+    saveBtn.textContent = '上传中...';
+    try {
+      var bgData = await cloudGetBg();
+      if (!bgData) bgData = {};
+      if (tempBgImg) bgData.bgImage = tempBgImg;
+      if (tempBgMusic) bgData.bgMusic = tempBgMusic;
+      bgData.lastUpdated = Date.now();
+      await cloudPutBg(bgData);
+      // Apply locally
+      if (tempBgImg) {
+        bgImageData = tempBgImg;
+        applyBgImage(bgImageData);
+      }
+      if (tempBgMusic) {
+        bgMusicData = tempBgMusic;
+        applyBgMusic(bgMusicData);
+      }
+      showToast('✅ 自定义背景已保存到云端');
+      modal.classList.add('hidden');
+    } catch(e) {
+      showToast('保存失败，请重试');
+      console.error(e);
+    }
+    saveBtn.disabled = false;
+    saveBtn.textContent = '✓ 保存到云端';
+  };
+
+  // ── Clear ──
+  clearBtn.onclick = async function() {
+    try {
+      await cloudPutBg({ bgImage: null, bgMusic: null, lastUpdated: Date.now() });
+      bgImageData = null;
+      bgMusicData = null;
+      applyBgImage(null);
+      applyBgMusic(null);
+      // Restore Web Audio music button
+      var musicBtn = document.getElementById('music-player');
+      musicBtn.onclick = function() {
+        if (musicPlaying) { stopMusic(); } else { startMusic(); }
+      };
+      showToast('🗑️ 已清除自定义背景和音乐');
+      modal.classList.add('hidden');
+    } catch(e) {
+      showToast('清除失败，请重试');
+    }
+  };
+})();
+
+// ══════════════════════════════════
 //  MAIN APP
 // ══════════════════════════════════
 
@@ -1780,6 +2236,26 @@ function applyBgTheme(themeId) {
         if (foodsChanged) { renderFoodRanking(); renderTimeline(); }
       }
       updateSyncIndicator('synced');
+
+      // ── Background resources sync (lightweight, separate key) ──
+      try {
+        var bgData = await cloudGetBg();
+        if (bgData) {
+          var imgChanged = bgImageData !== (bgData.bgImage || null);
+          var musicChanged = bgMusicData !== (bgData.bgMusic || null);
+          if (imgChanged) {
+            bgImageData = bgData.bgImage || null;
+            applyBgImage(bgImageData);
+          }
+          if (musicChanged) {
+            bgMusicData = bgData.bgMusic || null;
+            applyBgMusic(bgMusicData);
+          }
+        }
+      } catch(bgErr) {
+        // Background sync failure is non-critical
+        console.log('背景资源同步跳过:', bgErr);
+      }
     } catch (e) {
       console.error('同步失败:', e);
       updateSyncIndicator('error');
@@ -2420,6 +2896,9 @@ function applyBgTheme(themeId) {
 
   setInterval(syncData, 60000);
 
+  // Load background resources (async, non-blocking)
+  loadBgResources();
+
   // ══════════════════════════
   //  FEEDBACK BOX
   // ══════════════════════════
@@ -2529,7 +3008,7 @@ function applyBgTheme(themeId) {
 
   console.log('✅ 部门生日墙已加载（MantleDB 云端共享模式）');
   console.log('👥 总人数：' + PEOPLE.length);
-  console.log('🔄 数据每5秒自动同步');
+  console.log('🔄 数据每60秒自动同步');
 
 })();
 </script>
