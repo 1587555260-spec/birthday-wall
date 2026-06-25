@@ -1750,22 +1750,135 @@ function applyBgTheme(themeId) {
       var namesChanged = JSON.stringify(cloudData.names) !== JSON.stringify(data.names);
       var peopleChanged = JSON.stringify(cloudData.customPeople) !== JSON.stringify(data.customPeople);
       var feedbackChanged = JSON.stringify(cloudData.feedback) !== JSON.stringify(data.feedback);
-      var changed = foodsChanged || avatarsChanged || namesChanged || peopleChanged || feedbackChanged;
       applyCloudData(data);
-      if (changed && !isEditing) {
-        if (peopleChanged) {
-          rebuildPeopleData();
-          renderTimeline();
-          renderMonthTabs();
-          updateStats();
-        }
-        renderAll();
+
+      if (isEditing) { updateSyncIndicator('synced'); return; }
+
+      // 只有意见变化 → 只刷新意见列表，不动卡片
+      if (feedbackChanged && !foodsChanged && !avatarsChanged && !namesChanged && !peopleChanged) {
+        renderFeedback();
+        updateSyncIndicator('synced');
+        return;
+      }
+
+      // 人员增删 → 完整重建
+      if (peopleChanged) {
+        rebuildPeopleData();
+        renderTimeline();
+        renderMonthTabs();
+        updateStats();
+        renderCards();
+        renderFoodRanking();
+        renderFeedback();
+        updateSyncIndicator('synced');
+        return;
+      }
+
+      // 食物/头像/名字变化 → 原地更新卡片（不重建 DOM，不跳动）
+      if (foodsChanged || avatarsChanged || namesChanged) {
+        updateCardsInPlace({ foods: foodsChanged, avatars: avatarsChanged, names: namesChanged });
+        if (foodsChanged) { renderFoodRanking(); renderTimeline(); }
       }
       updateSyncIndicator('synced');
     } catch (e) {
       console.error('同步失败:', e);
       updateSyncIndicator('error');
     }
+  }
+
+  // ══════════════════════════════════
+  //  IN-PLACE CARD UPDATE (no DOM rebuild, no jump)
+  // ══════════════════════════════════
+
+  function updateCardsInPlace(changes) {
+    changes = changes || {};
+    var needRebind = false;
+    PEOPLE.forEach(function(p) {
+      var card = document.getElementById('card-' + p.key);
+      if (!card) return;
+
+      // 只在名字变化时更新名字
+      if (changes.names) {
+        var nameEl = card.querySelector('.card-name');
+        if (nameEl && !nameEl.querySelector('input')) {
+          var expectedHtml = esc(p.name) + '<span class="edit-icon">✏️</span>';
+          if (nameEl.innerHTML !== expectedHtml) {
+            nameEl.innerHTML = expectedHtml;
+          }
+        }
+        card.dataset.name = p.name;
+      }
+
+      // 只在头像变化时更新头像
+      if (changes.avatars) {
+        var av = getAvatar(p.key);
+        var deptClass = getDeptClass(p.dept);
+        var initials = p.name.slice(0, 1);
+        var avatarWrap = card.querySelector('.avatar-wrap');
+        if (avatarWrap) {
+          var oldAvatar = avatarWrap.querySelector('.avatar');
+          if (oldAvatar) {
+            // 判断当前头像类型与目标头像类型是否一致
+            var currentIsImg = !!oldAvatar.querySelector('img');
+            var currentIsEmoji = oldAvatar.classList.contains('avatar-emoji-display');
+            var targetIsImg = av && av.indexOf('data:') === 0;
+            var targetIsEmoji = av && av.length <= 4;
+            var needReplace = false;
+
+            if (targetIsImg && currentIsImg) {
+              // 图片头像：比较 src
+              var img = oldAvatar.querySelector('img');
+              if (img && img.getAttribute('src') !== av) needReplace = true;
+            } else if (targetIsEmoji && currentIsEmoji) {
+              // emoji 头像：比较文本
+              if (oldAvatar.textContent !== av) needReplace = true;
+            } else if (!targetIsImg && !targetIsEmoji && !currentIsImg && !currentIsEmoji) {
+              // 文字头像：比较首字母
+              if (oldAvatar.textContent !== initials) needReplace = true;
+            } else {
+              // 类型不同，需要替换
+              needReplace = true;
+            }
+
+            if (needReplace) {
+              var newAvatarHtml;
+              if (targetIsImg) {
+                newAvatarHtml = '<div class="avatar avatar-' + deptClass + '"><img src="' + av + '" alt="" /></div>';
+              } else if (targetIsEmoji) {
+                newAvatarHtml = '<div class="avatar avatar-emoji-display">' + av + '</div>';
+              } else {
+                newAvatarHtml = '<div class="avatar avatar-' + deptClass + '">' + initials + '</div>';
+              }
+              oldAvatar.outerHTML = newAvatarHtml;
+              needRebind = true;
+            }
+          }
+        }
+      }
+
+      // 只在食物变化时更新食物标签
+      if (changes.foods) {
+        var foodTagsEl = card.querySelector('.food-tags');
+        if (foodTagsEl) {
+          var foodTagsHtml = p.foods.length > 0
+            ? p.foods.map(function(f) {
+                return '<span class="food-tag">' + (FOOD_ICONS[f] || '🍽️') + ' ' + esc(f) +
+                  '<button class="food-tag-del" data-key="' + esc(p.key) + '" data-food="' + esc(f) + '" title="删除">×</button>' +
+                  '</span>';
+              }).join('')
+            : '<span class="no-food">暂未登记</span>';
+          var newHtml = foodTagsHtml +
+            '<button class="add-food-btn" data-key="' + esc(p.key) + '" title="添加食物">+</button>';
+          // 只在内容不同时才更新 DOM
+          if (foodTagsEl.innerHTML !== newHtml) {
+            foodTagsEl.innerHTML = newHtml;
+            needRebind = true;
+          }
+        }
+      }
+    });
+    // 只在有 DOM 变更时才重新绑定事件
+    if (needRebind) bindCardEvents();
   }
 
   // ══════════════════════════
@@ -1832,7 +1945,7 @@ function applyBgTheme(themeId) {
       data.version = (data.version || 0) + 1;
       await cloudPut(data);
       applyCloudData(data);
-      renderCards();
+      updateCardsInPlace({ foods: true });
       renderTimeline();
       renderFoodRanking();
       updateSyncIndicator('synced');
@@ -1883,7 +1996,7 @@ function applyBgTheme(themeId) {
         }
       }
       isEditing = false;
-      renderAll();
+      updateCardsInPlace({ names: true });
     }
 
     input.onblur = commitName;
@@ -2007,7 +2120,7 @@ function applyBgTheme(themeId) {
       updateSyncIndicator('saving');
       await cloudPut(data);
       applyCloudData(data);
-      renderCards();
+      updateCardsInPlace({ foods: true });
       renderTimeline();
       renderFoodRanking();
       updateSyncIndicator('synced');
@@ -2154,8 +2267,7 @@ function applyBgTheme(themeId) {
       await cloudPut(data);
       closeAvatarModal();
       applyCloudData(data);
-      renderCards();
-      renderTimeline();
+      updateCardsInPlace({ avatars: true });
       updateSyncIndicator('synced');
       showToast('头像已更新！');
     } catch (e) {
@@ -2306,7 +2418,7 @@ function applyBgTheme(themeId) {
     });
   }
 
-  setInterval(syncData, 5000);
+  setInterval(syncData, 60000);
 
   // ══════════════════════════
   //  FEEDBACK BOX
