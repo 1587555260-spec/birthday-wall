@@ -770,7 +770,7 @@
     <div class="upload-modal-title">⚙️ 自定义背景与音乐</div>
     <div class="upload-section">
       <div class="upload-section-title">🖼️ 背景图片</div>
-      <div class="upload-section-desc">上传一张图片作为页面背景，建议不超过 500KB</div>
+      <div class="upload-section-desc">建议尺寸 700×525px，横版图片效果最佳，系统会自动压缩适配云端</div>
       <div class="upload-area" id="bg-img-upload-area">
         <input type="file" class="upload-file-input" id="bg-img-file" accept="image/jpeg,image/png,image/webp,image/gif" />
         <div class="upload-area-icon">🖼️</div>
@@ -853,7 +853,7 @@
           <button class="photo-add-btn" id="photo-add-btn">📷 添加照片</button>
           <input type="file" class="photo-wall-input" id="photo-wall-file" accept="image/jpeg,image/png,image/webp,image/gif" multiple />
           <button class="photo-del-btn" id="photo-manage-btn">🗑️ 管理</button>
-          <span class="photo-upload-hint">支持 JPG/PNG，可多选</span>
+          <span class="photo-upload-hint">支持 JPG/PNG，自动压缩，可多选</span>
           <span class="photo-size-info" id="photo-size-info"></span>
         </div>
       </div>
@@ -1007,7 +1007,8 @@
 var MANTLE_NS = 'birthday-wall-2026-dept';
 var MANTLE_URL = 'https://mantledb.sh/v2/' + MANTLE_NS + '/data';
 var MANTLE_URL_BG = 'https://mantledb.sh/v2/' + MANTLE_NS + '-bg/data';
-var MANTLE_URL_PHOTOS = 'https://mantledb.sh/v2/' + MANTLE_NS + '-photos/data';
+var MANTLE_URL_PHOTOS = 'https://mantledb.sh/v2/' + MANTLE_NS + '-photos/data';  // manifest (IDs + names)
+function mantlePhotoUrl(id) { return 'https://mantledb.sh/v2/' + MANTLE_NS + '-photo-' + id + '/data'; }  // per-photo data
 
 var PASSWORD = 'dsm666';
 
@@ -1088,7 +1089,7 @@ var FOOD_CATEGORIES = [
     { icon: "🍇", name: "葡萄" }, { icon: "🍓", name: "草莓" },
     { icon: "🍉", name: "西瓜" }, { icon: "🍑", name: "桃子" },
     { icon: "🍒", name: "樱桃" }, { icon: "🥭", name: "芒果" },
-    { icon: "🍋", name: "柠檬" }, { icon: "🫐", name: "蓝莓" },
+    { icon: "🍋", name: "柠檬" }, { icon: "🟣", name: "蓝莓" },
     { icon: "🍈", name: "哈密瓜" }, { icon: "🍍", name: "菠萝" }
   ]}
 ];
@@ -1260,6 +1261,60 @@ function cloudGetPhotos() {
   });
 }
 
+// Fetch manifest then load each photo individually
+async function cloudLoadAllPhotos() {
+  var manifest = await cloudGetPhotos();
+  if (!manifest || !manifest.photoIds || manifest.photoIds.length === 0) return [];
+  var photos = [];
+  // Fetch each photo concurrently (max 6 parallel to avoid overwhelming)
+  var batchSize = 6;
+  for (var batchStart = 0; batchStart < manifest.photoIds.length; batchStart += batchSize) {
+    var batchIds = manifest.photoIds.slice(batchStart, batchStart + batchSize);
+    var batchResults = await Promise.all(batchIds.map(function(id) {
+      return fetch(mantlePhotoUrl(id)).then(function(r) {
+        if (r.status === 404) return null;
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).catch(function() { return null; });  // skip failed individual photos
+    }));
+    batchResults.forEach(function(photoData, idx) {
+      if (photoData && photoData.dataUrl) {
+        photos.push({
+          id: batchIds[idx],
+          dataUrl: photoData.dataUrl,
+          name: (manifest.names && manifest.names[batchIds[idx]]) || 'photo.jpg'
+        });
+      }
+    });
+  }
+  return photos;
+}
+
+// Save manifest (lightweight: just IDs + names)
+function cloudPutPhotoManifest(manifest) {
+  return fetch(MANTLE_URL_PHOTOS, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(manifest)
+  }).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  });
+}
+
+// Save a single photo to its own key
+function cloudPutPhotoData(id, dataUrl) {
+  return fetch(mantlePhotoUrl(id), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dataUrl: dataUrl })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  });
+}
+
+// Legacy: kept for old data migration
 function cloudPutPhotos(data) {
   return fetch(MANTLE_URL_PHOTOS, {
     method: 'POST',
@@ -1908,12 +1963,42 @@ function renderPhotoWall() {
 
 async function loadPhotos() {
   try {
-    var data = await cloudGetPhotos();
-    if (data && data.photos && Array.isArray(data.photos) && data.photos.length > 0) {
-      photoList = data.photos;
+    var manifest = await cloudGetPhotos();
+    // ── Migration: if old format (photos array in single key), migrate to per-photo keys ──
+    if (manifest && manifest.photos && Array.isArray(manifest.photos) && !manifest.photoIds) {
+      console.log('Migrating old photo format to per-photo keys...');
+      var oldPhotos = manifest.photos;
+      var newManifest = { photoIds: [], names: {}, lastUpdated: Date.now() };
+      // Save each photo to individual key
+      for (var k = 0; k < oldPhotos.length; k++) {
+        var p = oldPhotos[k];
+        try {
+          await cloudPutPhotoData(p.id, p.dataUrl);
+          newManifest.photoIds.push(p.id);
+          newManifest.names[p.id] = p.name;
+        } catch(e) {
+          console.log('Migration: failed to save photo ' + p.id);
+        }
+      }
+      // Save new manifest
+      await cloudPutPhotoManifest(newManifest);
+      manifest = newManifest;
+      console.log('Migration complete: ' + newManifest.photoIds.length + ' photos');
+    }
+
+    if (manifest && manifest.photoIds && manifest.photoIds.length > 0) {
+      photoList = await cloudLoadAllPhotos();
     } else if (photoList.length > 0) {
-      // 云端无数据但有本地初始数据 → 推送到云端
-      await cloudPutPhotos({ photos: photoList, lastUpdated: Date.now() });
+      // Cloud empty but local has data → push to cloud
+      var m = { photoIds: [], names: {}, lastUpdated: Date.now() };
+      for (var j = 0; j < photoList.length; j++) {
+        try {
+          await cloudPutPhotoData(photoList[j].id, photoList[j].dataUrl);
+          m.photoIds.push(photoList[j].id);
+          m.names[photoList[j].id] = photoList[j].name;
+        } catch(e) {}
+      }
+      await cloudPutPhotoManifest(m);
     }
     renderPhotoWall();
     updatePhotoSizeInfo();
@@ -1925,26 +2010,23 @@ async function loadPhotos() {
 }
 
 // ── 照片空间显示 ──
-var PHOTO_MAX_KB = 700;
+// MantleDB 免费版限制：每个请求体 ≤64KB（约46KB原始JPEG）
+var PHOTO_MAX_KB = 58;  // 单张照片上限（base64后JSON payload需<62KB）
 
 function updatePhotoSizeInfo() {
   var el = document.getElementById('photo-size-info');
   if (!el) return;
-  var totalKB = photoList.reduce(function(s, p) { return s + Math.round((p.dataUrl.length - 22) * 0.75 / 1024); }, 0);
-  var pct = Math.round(totalKB / PHOTO_MAX_KB * 100);
-  el.textContent = photoList.length + '张 / ' + totalKB + 'KB (上限' + PHOTO_MAX_KB + 'KB)';
-  el.className = pct > 80 ? 'photo-size-info warn' : 'photo-size-info';
+  el.textContent = photoList.length + '张照片';
+  el.className = 'photo-size-info';
 }
 
 async function uploadPhotos(files) {
   if (!files || files.length === 0) return;
-  // 先计算当前已有总大小（base64）
-  var currentTotalKB = photoList.reduce(function(sum, p) { return sum + Math.round((p.dataUrl.length - 22) * 0.75 / 1024); }, 0);
-  var MAX_TOTAL_KB = 700; // MantleDB安全上限，留余量
 
   var added = 0;
   var failed = [];
-  var newPhotos = [];
+  var newPhotoIds = [];
+  var newNames = {};
 
   for (var i = 0; i < files.length; i++) {
     var file = files[i];
@@ -1956,8 +2038,10 @@ async function uploadPhotos(files) {
         reader.onload = function(e) {
           var img = new Image();
           img.onload = function() {
-            // 更激进的压缩：max 500px 长边，质量从低开始
-            var maxDim = 500;
+            // 压缩目标：JSON payload < 62KB（MantleDB免费版64KB限制）
+            // data:image/jpeg;base64, 前缀22字符 + {"dataUrl":"..."} 包装~30字符
+            // → base64字符串需 < ~63900字符 → 原始JPEG需 < ~47925字节(~47KB)
+            var maxDim = 400;  // 缩小尺寸以降低体积
             var w = img.width, h = img.height;
             if (w > h) { if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; } }
             else { if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; } }
@@ -1965,11 +2049,24 @@ async function uploadPhotos(files) {
             canvas.width = w; canvas.height = h;
             canvas.getContext('2d').drawImage(img, 0, 0, w, h);
 
-            // 先试质量0.5，超200KB再降
-            var url = canvas.toDataURL('image/jpeg', 0.5);
-            var sizeKB = Math.round((url.length - 22) * 0.75 / 1024);
-            if (sizeKB > 200) url = canvas.toDataURL('image/jpeg', 0.35);
-            if (sizeKB > 300) url = canvas.toDataURL('image/jpeg', 0.25);
+            // 渐进压缩：每级重新计算实际大小，确保不超过 MantleDB 64KB 限制
+            var url = canvas.toDataURL('image/jpeg', 0.65);
+            var jsonSize = url.length;  // dataUrl长度≈JSON payload主体
+            if (jsonSize > 62000) { url = canvas.toDataURL('image/jpeg', 0.45); jsonSize = url.length; }
+            if (jsonSize > 62000) { url = canvas.toDataURL('image/jpeg', 0.32); jsonSize = url.length; }
+            if (jsonSize > 62000) {
+              // 进一步缩小画布
+              maxDim = 280;
+              var w2 = img.width, h2 = img.height;
+              if (w2 > h2) { if (w2 > maxDim) { h2 = Math.round(h2 * maxDim / w2); w2 = maxDim; } }
+              else { if (h2 > maxDim) { w2 = Math.round(w2 * maxDim / h2); h2 = maxDim; } }
+              var c2 = document.createElement('canvas');
+              c2.width = w2; c2.height = h2;
+              c2.getContext('2d').drawImage(img, 0, 0, w2, h2);
+              url = c2.toDataURL('image/jpeg', 0.5);
+              jsonSize = url.length;
+              if (jsonSize > 62000) { url = c2.toDataURL('image/jpeg', 0.3); jsonSize = url.length; }
+            }
             resolve(url);
           };
           img.onerror = reject;
@@ -1979,37 +2076,53 @@ async function uploadPhotos(files) {
         reader.readAsDataURL(file);
       });
 
-      var sizeKB = Math.round((dataUrl.length - 22) * 0.75 / 1024);
-      // 单张上限 250KB
-      if (sizeKB > 250) { failed.push(file.name + '(压缩后' + sizeKB + 'KB)'); continue; }
-      // 预检总量
-      if (currentTotalKB + newPhotos.reduce(function(s, p) { return s + Math.round((p.dataUrl.length - 22) * 0.75 / 1024); }, 0) + sizeKB > MAX_TOTAL_KB) {
-        failed.push(file.name + '(总量将超限，剩余约' + Math.max(0, MAX_TOTAL_KB - currentTotalKB) + 'KB)'); continue;
-      }
+      // 用完整 JSON payload 大小校验（dataUrl + JSON包装 ≈ dataUrl.length + 40）
+      var payloadEstimate = dataUrl.length + 40;
+      if (payloadEstimate > 63500) { failed.push(file.name + '(压缩后仍超限' + Math.round(payloadEstimate/1024) + 'KB)'); continue; }
 
-      newPhotos.push({
-        id: 'photo_' + Date.now() + '_' + i,
-        dataUrl: dataUrl,
-        name: file.name
-      });
+      var photoId = 'photo_' + Date.now() + '_' + i;
+      try {
+        await cloudPutPhotoData(photoId, dataUrl);
+        newPhotoIds.push(photoId);
+        newNames[photoId] = file.name;
+        photoList.push({ id: photoId, dataUrl: dataUrl, name: file.name });
+        added++;
+      } catch(e) {
+        photoList.pop();
+        failed.push(file.name + '(云端保存失败)');
+      }
     } catch(e) {
       failed.push(file.name + '(读取失败)');
     }
   }
 
-  if (newPhotos.length > 0) {
+  // 更新manifest
+  if (newPhotoIds.length > 0) {
     try {
-      photoList = photoList.concat(newPhotos);
-      added = newPhotos.length;
-      await cloudPutPhotos({ photos: photoList, lastUpdated: Date.now() });
+      var manifest = await cloudGetPhotos();
+      var m = manifest || { photoIds: [], names: {}, lastUpdated: 0 };
+      // 如果是旧格式，转换
+      if (m.photos && !m.photoIds) {
+        m.photoIds = m.photos.map(function(p) { return p.id; });
+        m.names = {};
+        m.photos.forEach(function(p) { m.names[p.id] = p.name; });
+      }
+      m.photoIds = m.photoIds.concat(newPhotoIds);
+      for (var nid in newNames) { m.names[nid] = newNames[nid]; }
+      m.lastUpdated = Date.now();
+      await cloudPutPhotoManifest(m);
       renderPhotoWall();
       updatePhotoSizeInfo();
       showToast('📸 已添加 ' + added + ' 张照片' + (failed.length ? '，' + failed.length + ' 张跳过' : ''));
     } catch(e) {
-      // 回滚
-      photoList.splice(photoList.length - newPhotos.length, newPhotos.length);
-      var totalAfterAdd = photoList.reduce(function(s, p) { return s + Math.round((p.dataUrl.length - 22) * 0.75 / 1024); }, 0);
-      showToast('❌ 保存失败：总大小约' + totalAfterAdd + 'KB，超出云端限制(' + MAX_TOTAL_KB + 'KB)。请删除一些旧照片后再试');
+      // Manifest更新失败 → 回滚本地photoList中刚添加的
+      for (var ri = 0; ri < newPhotoIds.length; ri++) {
+        var idx = photoList.findIndex(function(p) { return p.id === newPhotoIds[ri]; });
+        if (idx !== -1) photoList.splice(idx, 1);
+      }
+      showToast('❌ 照片索引更新失败，请稍后重试');
+      renderPhotoWall();
+      updatePhotoSizeInfo();
     }
   }
   if (failed.length > 0 && added === 0) {
@@ -2022,7 +2135,17 @@ async function deletePhoto(id) {
   if (idx === -1) return;
   photoList.splice(idx, 1);
   try {
-    await cloudPutPhotos({ photos: photoList, lastUpdated: Date.now() });
+    var manifest = await cloudGetPhotos();
+    var m = manifest || { photoIds: [], names: {}, lastUpdated: 0 };
+    if (m.photos && !m.photoIds) {
+      m.photoIds = m.photos.map(function(p) { return p.id; });
+      m.names = {};
+      m.photos.forEach(function(p) { m.names[p.id] = p.name; });
+    }
+    m.photoIds = m.photoIds.filter(function(pid) { return pid !== id; });
+    if (m.names) delete m.names[id];
+    m.lastUpdated = Date.now();
+    await cloudPutPhotoManifest(m);
     renderPhotoWall();
     updatePhotoSizeInfo();
     showToast('🗑️ 照片已删除');
@@ -2139,8 +2262,8 @@ document.addEventListener('DOMContentLoaded', function() {
   bgImgFile.onchange = function() {
     var file = bgImgFile.files[0];
     if (!file) return;
-    if (file.size > 1 * 1024 * 1024) {
-      bgImgStatus.textContent = '❌ 图片太大，请选择小于 1MB 的图片（或先压缩）';
+    if (file.size > 4 * 1024 * 1024) {
+      bgImgStatus.textContent = '❌ 图片太大，请选择小于 4MB 的图片';
       bgImgFile.value = '';
       return;
     }
@@ -2149,34 +2272,46 @@ document.addEventListener('DOMContentLoaded', function() {
     reader.onload = function(e) {
       var img = new Image();
       img.onload = function() {
-        // 更激进：最大 800px 宽，JPEG 50% 质量
-        var maxW = 800;
+        // MantleDB 免费版限制：JSON payload ≤64KB
+        // 目标：dataUrl + JSON包装 < 63500 字符
+        var maxW = 700, maxH = 525;  // 先试较大尺寸
         var w = img.width, h = img.height;
         if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
-        // 二次缩放：如果高度仍然太大，也缩小
-        var maxH = 800;
         if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; }
+
         var canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        var ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-        // 先尝试 50% 质量，如果还是太大就降到 35%
-        var dataUrl = canvas.toDataURL('image/jpeg', 0.5);
-        var sizeKB = Math.round((dataUrl.length - 22) * 0.75 / 1024);
-        if (sizeKB > 500) {
-          dataUrl = canvas.toDataURL('image/jpeg', 0.35);
-          sizeKB = Math.round((dataUrl.length - 22) * 0.75 / 1024);
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+        // 渐进压缩，每级校验实际 payload 大小
+        var dataUrl = canvas.toDataURL('image/jpeg', 0.70);
+        var payloadEst = dataUrl.length + 40;  // JSON包装开销
+        if (payloadEst > 63500) { dataUrl = canvas.toDataURL('image/jpeg', 0.55); payloadEst = dataUrl.length + 40; }
+        if (payloadEst > 63500) { dataUrl = canvas.toDataURL('image/jpeg', 0.42); payloadEst = dataUrl.length + 40; }
+
+        // 还超限就缩小画布
+        if (payloadEst > 63500) {
+          maxW = 500; maxH = 375;
+          var w2 = img.width, h2 = img.height;
+          if (w2 > maxW) { h2 = Math.round(h2 * maxW / w2); w2 = maxW; }
+          if (h2 > maxH) { w2 = Math.round(w2 * maxH / h2); h2 = maxH; }
+          var c2 = document.createElement('canvas');
+          c2.width = w2; c2.height = h2;
+          c2.getContext('2d').drawImage(img, 0, 0, w2, h2);
+          dataUrl = c2.toDataURL('image/jpeg', 0.60);
+          payloadEst = dataUrl.length + 40;
+          if (payloadEst > 63500) { dataUrl = c2.toDataURL('image/jpeg', 0.45); payloadEst = dataUrl.length + 40; }
         }
-        // 最终安全校验：base64 后不能超过 700KB（留余量给 JSON 包装）
-        if (sizeKB > 700) {
-          bgImgStatus.textContent = '❌ 压缩后仍太大 (' + sizeKB + 'KB)，请选一张更小的图片';
+
+        if (payloadEst > 63500) {
+          bgImgStatus.textContent = '❌ 压缩后仍超出云端限制，请选一张更简单的图片';
           bgImgFile.value = '';
           return;
         }
         tempBgImg = dataUrl;
+        var sizeKB = Math.round(payloadEst / 1024);
         bgImgArea.classList.add('has-file');
-        bgImgText.textContent = '✅ 已选择 (' + sizeKB + 'KB)';
+        bgImgText.textContent = '✅ 已选择 (' + sizeKB + 'KB, ' + w + '×' + h + ')';
         bgImgText.classList.add('has');
         bgImgPreview.src = dataUrl;
         bgImgPreview.classList.remove('hidden');
@@ -2549,7 +2684,7 @@ document.addEventListener('DOMContentLoaded', function() {
             '</div>' +
             '<div class="food-section">' +
               '<div class="food-label">🍴 喜好食物</div>' +
-              '<div class="food-tags">' +
+              '<div class="food-tags" data-sig="' + JSON.stringify(p.foods).replace(/"/g, '&quot;') + '">' +
                 foodTagsHtml +
                 '<button class="add-food-btn" data-key="' + esc(p.key) + '" title="添加食物">+</button>' +
               '</div>' +
@@ -2681,6 +2816,24 @@ document.addEventListener('DOMContentLoaded', function() {
         // Background sync failure is non-critical
         console.log('背景资源同步跳过:', bgErr);
       }
+
+      // ── Photo wall sync (check manifest for changes) ──
+      try {
+        var photoManifest = await cloudGetPhotos();
+        if (photoManifest) {
+          // Handle old format → convert
+          var mIds = (photoManifest.photoIds || (photoManifest.photos ? photoManifest.photos.map(function(p) { return p.id; }) : []));
+          var currentIds = photoList.map(function(p) { return p.id; });
+          var photosChanged = JSON.stringify(mIds.sort()) !== JSON.stringify(currentIds.sort());
+          if (photosChanged) {
+            photoList = await cloudLoadAllPhotos();
+            renderPhotoWall();
+            updatePhotoSizeInfo();
+          }
+        }
+      } catch(photoErr) {
+        console.log('照片同步跳过:', photoErr);
+      }
     } catch (e) {
       console.error('同步失败:', e);
       updateSyncIndicator('error');
@@ -2761,18 +2914,19 @@ document.addEventListener('DOMContentLoaded', function() {
       if (changes.foods) {
         var foodTagsEl = card.querySelector('.food-tags');
         if (foodTagsEl) {
-          var foodTagsHtml = p.foods.length > 0
-            ? p.foods.map(function(f) {
-                return '<span class="food-tag">' + (FOOD_ICONS[f] || '🍽️') + ' ' + esc(f) +
-                  '<button class="food-tag-del" data-key="' + esc(p.key) + '" data-food="' + esc(f) + '" title="删除">×</button>' +
-                  '</span>';
-              }).join('')
-            : '<span class="no-food">暂未登记</span>';
-          var newHtml = foodTagsHtml +
-            '<button class="add-food-btn" data-key="' + esc(p.key) + '" title="添加食物">+</button>';
-          // 只在内容不同时才更新 DOM
-          if (foodTagsEl.innerHTML !== newHtml) {
-            foodTagsEl.innerHTML = newHtml;
+          // 用 JSON 签名比对，避免 innerHTML 标准化导致比对失败
+          var foodSig = JSON.stringify(p.foods);
+          if (foodTagsEl.getAttribute('data-sig') !== foodSig) {
+            var foodTagsHtml = p.foods.length > 0
+              ? p.foods.map(function(f) {
+                  return '<span class="food-tag">' + (FOOD_ICONS[f] || '🍽️') + ' ' + esc(f) +
+                    '<button class="food-tag-del" data-key="' + esc(p.key) + '" data-food="' + esc(f) + '" title="删除">×</button>' +
+                    '</span>';
+                }).join('')
+              : '<span class="no-food">暂未登记</span>';
+            foodTagsEl.innerHTML = foodTagsHtml +
+              '<button class="add-food-btn" data-key="' + esc(p.key) + '" title="添加食物">+</button>';
+            foodTagsEl.setAttribute('data-sig', foodSig);
             needRebind = true;
           }
         }
